@@ -1,0 +1,13 @@
+# Node.js dependencies
+node_modules/
+
+# TypeScript build output
+*.js
+*.js.map
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
