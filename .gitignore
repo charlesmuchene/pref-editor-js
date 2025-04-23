@@ -11,3 +11,5 @@ logs/
 
 # Environment variables
 .env
+
+.vscode/
