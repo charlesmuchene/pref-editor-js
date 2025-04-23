@@ -18,6 +18,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@devicefarmer/adbkit": "^3.3.8"
+    "@devicefarmer/adbkit": "^3.3.8",
+    "@dotenvx/dotenvx": "^1.41.0"
   }
 }
