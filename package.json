@@ -1,17 +1,17 @@
 {
-  "name": "bridge",
+  "name": "pref-editor",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "app.ts",
   "scripts": {
     "build": "tsc",
-    "start": "ts-node src/index.ts",
-    "dev": "ts-node src/index.ts",
+    "start": "ts-node src/app.ts",
+    "dev": "ts-node src/app.ts",
     "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "Charles Muchene",
-  "description": "Bridging with ADB",
+  "description": "View and Edit preferences ",
   "devDependencies": {
     "@types/node": "^22.14.1",
     "ts-node": "^10.9.2",
