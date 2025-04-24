@@ -1,17 +1,26 @@
-import { App, Device, File, FileType, Preferences } from "./../types/type";
-import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
+import {
+  App,
+  Apps,
+  Device,
+  File,
+  Files,
+  FileType,
+  Preferences,
+} from "./../types/type";
+import Adb, { DeviceClient, Device as FarmDevice } from "@devicefarmer/adbkit";
 import { extractTypeValue, filePath } from "../utils/utils";
-import { PreferenceMap } from "../../protos/message";
+import { PreferenceMap } from "../protos/message";
 import { Devices } from "../types/type";
 
 const client = Adb.createClient();
 
-export const getDevice = (serial: string) => client.getDevice(serial);
+export const getDevice: (serial: string) => DeviceClient = (serial: string) =>
+  client.getDevice(serial);
 
-async function shell(device: Device, command: string) {
+const shell = async (device: Device, command: string) => {
   const stream = await getDevice(device.serial).shell(command);
   return await Adb.util.readAll(stream);
-}
+};
 
 export const listDevices: () => Promise<Devices> = async () =>
   await client.listDevices().then((devices: FarmDevice[]) =>
@@ -20,7 +29,9 @@ export const listDevices: () => Promise<Devices> = async () =>
     })
   );
 
-export const listApps = async (device: Device) =>
+export const listApps: (device: Device) => Promise<Apps> = async (
+  device: Device
+) =>
   (
     await shell(
       device,
@@ -35,7 +46,10 @@ export const listApps = async (device: Device) =>
       };
     });
 
-export const listFiles = async (device: Device, app: App) =>
+export const listFiles: (device: Device, app: App) => Promise<Files> = async (
+  device: Device,
+  app: App
+) =>
   Promise.all([
     (
       await shell(

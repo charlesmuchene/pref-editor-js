@@ -1,9 +1,11 @@
 node_modules/
+.vscode/
 src/
-protos/*.proto
 *.log
 *.tsbuildinfo
 .DS_Store
 .editorconfig
 .vscode
 .env
+eslint.config.mjs
+tsconfig.json

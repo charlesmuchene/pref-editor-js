@@ -24,6 +24,8 @@ export enum FileType {
   DATA_STORE = "data_store",
 }
 
+export type Files = Array<File>;
+
 export interface File {
   name: string;
   type: FileType;

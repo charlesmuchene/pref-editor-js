@@ -1,5 +1,5 @@
 import { File, Type } from "../types/type";
-import { IValue, Value } from "../../protos/message";
+import { IValue, Value } from "../protos/message";
 
 export function extractTypeValue(
   value: IValue
