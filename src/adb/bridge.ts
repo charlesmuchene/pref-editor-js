@@ -29,7 +29,7 @@ export const listApps = async (device: Device) =>
   )
     .toString()
     .split("\n")
-    .map((line) => {
+    .map((line: string) => {
       return {
         packageName: line.trim(),
       };
@@ -46,7 +46,7 @@ export const listFiles = async (device: Device, app: App) =>
       .toString()
       .trim()
       .split("\n")
-      .map((line) => {
+      .map((line: string) => {
         return { name: line.trim(), type: FileType.KEY_VALUE };
       }),
     (
@@ -58,7 +58,7 @@ export const listFiles = async (device: Device, app: App) =>
       .toString()
       .trim()
       .split("\n")
-      .map((line) => {
+      .map((line: string) => {
         return { name: line.trim(), type: FileType.DATA_STORE };
       }),
   ]);
@@ -76,7 +76,7 @@ export const readPreferences = async (device: Device, app: App, file: File) => {
 
 const parseDatastore = (buffer: Buffer<ArrayBufferLike>): Preferences =>
   Object.entries(PreferenceMap.decode(buffer).preferences)
-    .filter(([_, value]) => extractTypeValue(value) !== undefined)
+    .filter(([_key, value]) => extractTypeValue(value) !== undefined)
     .map(([key, value]) => {
       return {
         key,

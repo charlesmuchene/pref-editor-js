@@ -1,4 +1,4 @@
-require("@dotenvx/dotenvx").config();
+import "@dotenvx/dotenvx/config";
 import { App, Device, File, FileType } from "./types/type";
 import { readPreferences } from "./adb/bridge";
 
