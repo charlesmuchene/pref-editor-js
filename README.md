@@ -1,11 +1,17 @@
-# Pref-Editor lib
+# Pref-Editor js library
 
-View and edit on-device preferences: **NO ROOT** required!
-> The app supports reading/writing _legacy_ **shared preferences**. **Datastore-based** preferences are currently supported in read-only mode.
+**View** and **edit** on-device preferences: **NO ROOT** required! 🥳
+> The app supports reading/writing _legacy_ **shared preferences**.
+> **Datastore-based** preferences are currently supported in read-only mode.
 
-## Build
+## Requirements
 
-`npm start` to run `app.ts`. See file for env requirements.
+* [Node.js](https://nodejs.org) (verified with _v23.11.0_)
+* The [adb](https://developer.android.com/tools/adb) command line tool
+
+## Contributing
+
+See [Contributing](./CONTRIBUTING.md).
 
 ## License
 

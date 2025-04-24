@@ -1,0 +1,9 @@
+node_modules/
+src/
+protos/*.proto
+*.log
+*.tsbuildinfo
+.DS_Store
+.editorconfig
+.vscode
+.env

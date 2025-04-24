@@ -10,9 +10,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile-protos": "pbjs -t static-module -w commonjs -o protos/message.js protos/message.proto && pbts -o protos/message.d.ts protos/message.js"
   },
-  "keywords": [],
+  "keywords": [
+    "Shared Preferences",
+    "Datastore",
+    "Android"
+  ],
   "author": "Charles Muchene",
-  "description": "View and Edit preferences ",
+  "description": "View and Edit Android preferences ",
   "devDependencies": {
     "@types/node": "^22.14.1",
     "protobufjs-cli": "^1.1.3",
