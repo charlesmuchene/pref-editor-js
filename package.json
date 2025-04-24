@@ -1,5 +1,5 @@
 {
-  "name": "pref-editor",
+  "name": "@charlesmuchene/pref-editor",
   "version": "1.0.0",
   "main": "app.ts",
   "scripts": {
@@ -11,11 +11,15 @@
     "compile-protos": "pbjs -t static-module -w commonjs -o protos/message.js protos/message.proto && pbts -o protos/message.d.ts protos/message.js"
   },
   "keywords": [
-    "Shared Preferences",
-    "Datastore",
-    "Android"
+    "shared preferences",
+    "datastore",
+    "android"
   ],
-  "author": "Charles Muchene",
+  "author": {
+    "name": "Charles Muchene",
+    "url": "https://charlesmuchene.com"
+  },
+  "license": "Apache-2.0",
   "description": "View and Edit Android preferences ",
   "devDependencies": {
     "@types/node": "^22.14.1",
