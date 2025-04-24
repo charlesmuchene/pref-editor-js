@@ -5,7 +5,7 @@ View and edit on-device preferences: **NO ROOT** required!
 
 ## Build
 
-`npm start`
+`npm start` to run `app.ts`. See file for env requirements.
 
 ## License
 
