@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "builder": "tsc",
+    "dev": "ts-node src/index.ts",
     "lint": "eslint src/ --ext .ts",
     "build": "npm run compile-protos && npm run copy-protos && tsc",
     "clean": "rimraf index.d.ts src/**/*.js dist src/**/*.d.ts",
