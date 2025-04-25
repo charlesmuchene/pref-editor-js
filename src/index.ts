@@ -18,3 +18,5 @@ export {
   listFiles,
   readPreferences,
 } from "./adb/bridge";
+
+export { createFile } from "./utils/utils";
