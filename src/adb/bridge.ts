@@ -41,6 +41,7 @@ export const listApps: (device: Device) => Promise<Apps> = async (
     )
   )
     .toString()
+    .trim()
     .split("\n")
     .map((line: string) => {
       return {
