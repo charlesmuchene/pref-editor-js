@@ -12,6 +12,7 @@ export {
 } from "./types/type";
 
 export {
+  getDevice,
   listDevices,
   listApps,
   listFiles,

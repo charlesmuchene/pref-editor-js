@@ -7,18 +7,20 @@ import {
   FileType,
   Preferences,
 } from "./../types/type";
-import Adb, { DeviceClient, Device as FarmDevice } from "@devicefarmer/adbkit";
+import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
 import { extractTypeValue, filePath } from "../utils/utils";
 import { PreferenceMap } from "../protos/message";
 import { Devices } from "../types/type";
 
 const client = Adb.createClient();
 
-export const getDevice: (serial: string) => DeviceClient = (serial: string) =>
-  client.getDevice(serial);
+export const getDevice: (serial: string) => Device = (serial: string) => ({
+  serial,
+  type: client.getDevice(serial).getState(),
+});
 
 const shell = async (device: Device, command: string) => {
-  const stream = await getDevice(device.serial).shell(command);
+  const stream = await client.getDevice(device.serial).shell(command);
   return await Adb.util.readAll(stream);
 };
 
