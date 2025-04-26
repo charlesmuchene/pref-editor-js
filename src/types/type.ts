@@ -51,3 +51,9 @@ export type Preferences = Array<Preference>;
 export interface Preference extends PartialPreference {
   tag: TypeTag;
 }
+
+export interface Connection {
+  device: string;
+  app?: string;
+  file?: string;
+}

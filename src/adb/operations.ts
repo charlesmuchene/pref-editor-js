@@ -1,14 +1,14 @@
-import { Url } from "url";
 import { PartialPreference } from "../types/type";
-
-function validUrl(url: Url): boolean {
-  return url.protocol === "pref-editor";
-}
+import { validUrl } from "../utils/utils";
 
 export const deletePreference = async (
   preference: PartialPreference,
-  uri: Url
+  url: URL
 ) => {
-  if (!validUrl(uri)) throw new Error(`Invalid URL: ${uri}`);
+  if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);
   console.log(`Deleting preference: ${preference.key}`);
+  // Read all preferences given the url
+  // - construct: cxn from url
+  // Remove the preference from the list
+  // Write the remaining preferences back to the file
 };
