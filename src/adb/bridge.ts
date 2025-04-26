@@ -1,22 +1,15 @@
-import {
-  App,
-  Apps,
-  Device,
-  File,
-  Files,
-  FileType,
-  Preferences,
-} from "./../types/type";
+import { App, Apps, Device, File, Files, FileType } from "./../types/type";
 import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
-import { extractTypeValue, filePath } from "../utils/utils";
-import { PreferenceMap } from "../protos/message";
 import { Devices } from "../types/type";
+import { parseDatastore } from "../utils/proto-utils";
+import { parseKeyValue } from "../utils/xml-utils";
+import { filePath } from "../utils/utils";
 
 const client = Adb.createClient();
 
 export const getDevice: (serial: string) => Device = (serial: string) => ({
   serial,
-  type: client.getDevice(serial).getState(),
+  state: client.getDevice(serial).getState(),
 });
 
 const shell = async (device: Device, command: string) => {
@@ -90,17 +83,3 @@ export const readPreferences = async (device: Device, app: App, file: File) => {
 
   throw new Error("Unknown file type");
 };
-
-const parseDatastore = (buffer: Buffer<ArrayBufferLike>): Preferences =>
-  Object.entries(PreferenceMap.decode(buffer).preferences)
-    .filter(([_key, value]) => extractTypeValue(value) !== undefined)
-    .map(([key, value]) => {
-      return {
-        key,
-        ...extractTypeValue(value)!,
-      };
-    });
-
-function parseKeyValue(_buffer: Buffer<ArrayBufferLike>): Preferences {
-  return [];
-}

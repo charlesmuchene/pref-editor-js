@@ -1,24 +1,4 @@
-import { File, FileType, Type } from "../types/type";
-import { IValue, Value } from "../protos/message";
-
-export function extractTypeValue(
-  value: IValue
-): { type: Type; value: string } | undefined {
-  if (!(value instanceof Value)) throw new Error(`Unknown value: ${value}`);
-
-  switch (value.value) {
-    case "string":
-      return { type: Type.STRING, value: value.string! };
-    case "integer":
-      return { type: Type.INTEGER, value: value.integer!.toString() };
-    case "float":
-      return { type: Type.FLOAT, value: value.float!.toString() };
-    case "boolean":
-      return { type: Type.BOOLEAN, value: value.boolean!.toString() };
-    case "long":
-      return { type: Type.LONG, value: value.long!.toString() };
-  }
-}
+import { File, FileType } from "../types/type";
 
 export function filePath(file: File): string {
   switch (file.type) {

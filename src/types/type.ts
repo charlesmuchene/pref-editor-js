@@ -1,16 +1,26 @@
-export enum Type {
-  STRING = "string",
-  INTEGER = "integer",
-  FLOAT = "float",
-  BOOLEAN = "boolean",
+export enum TypeTag {
   LONG = "long",
+  FLOAT = "float",
+  DOUBLE = "double",
+  STRING = "string",
+  BOOLEAN = "boolean",
+  INTEGER = "integer",
+  STRINGSET = "stringset",
+  BYTESARRAY = "bytesarray",
 }
 
 export type Devices = Array<Device>;
 
+export type DeviceState =
+  | "emulator"
+  | "device"
+  | "offline"
+  | "unauthorized"
+  | "unknown";
+
 export interface Device {
   serial: string;
-  type: "emulator" | "device" | "offline" | "unauthorized" | "unknown";
+  state: DeviceState;
 }
 
 export type Apps = Array<App>;
@@ -31,10 +41,13 @@ export interface File {
   type: FileType;
 }
 
-export interface Preference {
+export interface PartialPreference {
   key: string;
   value: string;
-  type: Type;
 }
 
 export type Preferences = Array<Preference>;
+
+export interface Preference extends PartialPreference {
+  tag: TypeTag;
+}

@@ -1,5 +1,4 @@
 export {
-  Type,
   App,
   File,
   Device,
@@ -9,6 +8,8 @@ export {
   Devices,
   FileType,
   Preferences,
+  TypeTag,
+  PartialPreference,
 } from "./types/type";
 
 export {
