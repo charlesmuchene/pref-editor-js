@@ -1,7 +1,19 @@
-import { PartialPreference, Preferences } from "../types/type";
+import { PartialPreference, Preference, Preferences } from "../types/type";
 import { encodeDatastorePrefs } from "../utils/proto-utils";
 import { readPreferences, writePreferences } from "./bridge";
 import { validUrl } from "../utils/utils";
+
+export const addPreference = async (preference: Preference, url: URL) => {
+  if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);
+
+  const prefs: Preferences = await readPreferences(url);
+
+  if (prefs.some((p) => p.key === preference.key))
+    throw new Error(`Preference already exists: ${preference.key}`);
+  prefs.push(preference);
+  const encodedPrefs = encodeDatastorePrefs(prefs);
+  await writePreferences(url, encodedPrefs);
+};
 
 export const deletePreference = async (
   preference: PartialPreference,

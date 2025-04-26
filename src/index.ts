@@ -1,4 +1,5 @@
-import { deletePreference } from "./adb/operations";
+import { addPreference, deletePreference } from "./adb/operations";
+import { TypeTag } from "./types/type";
 
 export {
   App,
@@ -25,12 +26,12 @@ export { createFile } from "./utils/utils";
 
 // DEV work
 async function main() {
-  console.log("Starting...");
-  const pref = { key: "boolean", value: "true" };
+  console.log("Starting work...");
+  const pref = { key: "boolean", value: "true", tag: TypeTag.BOOLEAN };
   const url = URL.parse(
     "pref-editor://emulator-5554/com.charlesmuchene.datastore/proto.preferences_pb"
   )!;
-  deletePreference(pref, url);
+  addPreference(pref, url);
 }
 
 main().catch(console.error);
