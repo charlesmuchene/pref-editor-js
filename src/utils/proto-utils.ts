@@ -47,7 +47,7 @@ export const decodeDatastorePrefs = (
 export const encodeDatastorePrefs = (preferences: Preferences): Uint8Array => {
   const entries = new Map(
     preferences.map((pref) => {
-      let value: StringSet | Uint8Array | string;
+      let value: StringSet | Uint8Array | string | boolean;
       switch (pref.tag) {
         case TypeTag.STRINGSET:
           value = StringSet.fromObject({
@@ -58,6 +58,9 @@ export const encodeDatastorePrefs = (preferences: Preferences): Uint8Array => {
           value = new Uint8Array(
             Array.from(pref.value).map((char) => char.charCodeAt(0))
           );
+          break;
+        case TypeTag.BOOLEAN:
+          value = pref.value === "true" ? true : false;
           break;
         default:
           value = pref.value;

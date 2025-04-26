@@ -30,3 +30,24 @@ export const deletePreference = async (
   const encodedPrefs = encodeDatastorePrefs(prefs);
   await writePreferences(url, encodedPrefs);
 };
+
+export const changePreference = async (
+  preference: PartialPreference,
+  url: URL
+) => {
+  if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);
+
+  const prefs: Preferences = await readPreferences(url);
+
+  const index = prefs.findIndex((p) => p.key === preference.key);
+  if (index === -1) throw new Error(`Preference not found: ${preference.key}`);
+  const existing = prefs[index];
+  prefs[index] = {
+    key: existing.key,
+    tag: existing.tag,
+    value: preference.value,
+  };
+
+  const encodedPrefs = encodeDatastorePrefs(prefs);
+  await writePreferences(url, encodedPrefs);
+};
