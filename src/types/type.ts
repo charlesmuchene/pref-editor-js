@@ -5,8 +5,8 @@ export enum TypeTag {
   STRING = "string",
   BOOLEAN = "boolean",
   INTEGER = "integer",
-  STRINGSET = "stringset",
-  BYTESARRAY = "bytesarray",
+  STRINGSET = "stringSet",
+  BYTESARRAY = "bytesArray",
 }
 
 export type Devices = Array<Device>;

@@ -1,4 +1,6 @@
-import { PartialPreference } from "../types/type";
+import { PartialPreference, Preferences } from "../types/type";
+import { encodeDatastorePrefs } from "../utils/proto-utils";
+import { readPreferences, writePreferences } from "./bridge";
 import { validUrl } from "../utils/utils";
 
 export const deletePreference = async (
@@ -6,9 +8,13 @@ export const deletePreference = async (
   url: URL
 ) => {
   if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);
-  console.log(`Deleting preference: ${preference.key}`);
-  // Read all preferences given the url
-  // - construct: cxn from url
-  // Remove the preference from the list
-  // Write the remaining preferences back to the file
+
+  const prefs: Preferences = await readPreferences(url);
+
+  const index = prefs.findIndex((p) => p.key === preference.key);
+  if (index === -1) throw new Error(`Preference not found: ${preference.key}`);
+  prefs.splice(index, 1);
+
+  const encodedPrefs = encodeDatastorePrefs(prefs);
+  await writePreferences(url, encodedPrefs);
 };

@@ -1,8 +1,8 @@
 import { Apps, Files, FileType } from "./../types/type";
 import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
 import { Devices } from "../types/type";
-import { parseDatastore } from "../utils/proto-utils";
-import { parseKeyValue } from "../utils/xml-utils";
+import { decodeDatastorePrefs } from "../utils/proto-utils";
+import { parseKeyValue as decodeKeyValuePrefs } from "../utils/xml-utils";
 import { createConnection, createFile, filePath } from "../utils/utils";
 
 const client = Adb.createClient();
@@ -72,8 +72,22 @@ export const readPreferences = async (url: URL) => {
     connection.device,
     `run-as ${connection.app} cat ${filePath(file)}`
   );
-  if (file.type === FileType.KEY_VALUE) return parseKeyValue(output);
-  if (file.type === FileType.DATA_STORE) return parseDatastore(output);
+  if (file.type === FileType.KEY_VALUE) return decodeKeyValuePrefs(output);
+  if (file.type === FileType.DATA_STORE) return decodeDatastorePrefs(output);
 
   throw new Error("Unknown file type");
+};
+
+export const writePreferences = async (
+  url: URL,
+  data: Uint8Array<ArrayBufferLike>
+) => {
+  const connection = createConnection(url);
+  const file = createFile(connection.file!);
+  const path = filePath(file);
+  const encodedData = Buffer.from(data).toString("base64");
+  await shell(
+    connection.device,
+    `run-as ${connection.app} sh -c 'echo ${encodedData} | base64 -d | dd of=${path} status=none'`
+  );
 };

@@ -24,7 +24,7 @@ export function filePath(file: File): string {
 }
 
 export const validUrl = (url: URL): boolean => {
-  return url.protocol === "pref-editor";
+  return url.protocol.startsWith("pref-editor");
 };
 
 const extractSegments = (url: URL) =>
