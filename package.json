@@ -5,13 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "builder": "tsc",
     "dev": "ts-node src/index.ts",
     "lint": "eslint src/ --ext .ts",
-    "build": "npm run compile-protos && npm run copy-protos && tsc",
-    "clean": "rimraf index.d.ts src/**/*.js dist src/**/*.d.ts",
+    "build": "tsc && npm run copy-protos",
+    "clean": "rimraf dist",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copy-protos": "mkdir -p dist/protos && cp src/protos/message.js dist/protos/message.js && cp src/protos/message.d.ts dist/protos/message.d.ts",
+    "copy-protos": "mkdir -p dist/protos && find src/protos -type f \\( -name '*.js' -o -name '*.d.ts' \\) -exec cp {} dist/protos/ \\;",
     "compile-protos": "pbjs -t static-module -w commonjs -o src/protos/message.js src/protos/message.proto && pbts -o src/protos/message.d.ts src/protos/message.js",
     "prepare": "npm run clean && npm run build"
   },
