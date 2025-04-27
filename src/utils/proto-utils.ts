@@ -1,7 +1,6 @@
 import { Preferences, TypeTag } from "../types/type";
 import { IValue, PreferenceMap, StringSet, Value } from "../protos/message";
-
-export const STRINGSET_SEPARATOR = "|";
+import { STRINGSET_SEPARATOR } from "./utils";
 
 function extractTypeValue(value: IValue): {
   value: string;

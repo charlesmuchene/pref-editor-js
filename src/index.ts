@@ -1,6 +1,4 @@
-import { changePreference } from "./adb/operations";
-import { TypeTag } from "./types/type";
-
+import { readPreferences } from "./adb/bridge";
 export {
   App,
   File,
@@ -27,11 +25,11 @@ export { createFile } from "./utils/utils";
 // DEV work
 async function main() {
   console.log("Starting work...");
-  const pref = { key: "boolean", value: "false", tag: TypeTag.BOOLEAN };
+  // const pref = { key: "boolean", value: "false", tag: TypeTag.BOOLEAN };
   const url = URL.parse(
-    "pref-editor://emulator-5554/com.charlesmuchene.datastore/proto.preferences_pb"
+    "pref-editor://emulator-5554/com.charlesmuchene.datastore/legacy-prefs.xml"
   )!;
-  changePreference(pref, url);
+  console.log(await readPreferences(url));
 }
 
 main().catch(console.error);

@@ -1,6 +1,8 @@
 import { Connection, File, FileType } from "../types/type";
 import assert from "assert";
 
+export const STRINGSET_SEPARATOR = "|";
+
 export function createFile(filename: string): File {
   const type = filename.endsWith(".xml")
     ? FileType.KEY_VALUE

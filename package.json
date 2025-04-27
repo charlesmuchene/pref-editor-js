@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@devicefarmer/adbkit": "^3.3.8",
+    "fast-xml-parser": "^5.2.1",
     "protobufjs": "^7.5.0"
   }
 }
