@@ -15,7 +15,7 @@ export enum Op {
   CHANGE = "change",
 }
 
-const escape = (content: string) => content.replace("/", "\\/");
+const escape = (content: string) => content.replace(/\//g, "\\/").trim();
 
 export const addPreference = async (preference: Preference, url: URL) => {
   if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);

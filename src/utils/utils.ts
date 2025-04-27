@@ -25,9 +25,9 @@ export const fileTypeFromUrl = (url: URL): FileType => {
   return fileTypeFromName(filename);
 };
 
-export function createFile(filename: string): File {
-  const type = fileTypeFromName(filename);
-  return { name: filename, type };
+export function createFile(name: string): File {
+  const type = fileTypeFromName(name);
+  return { name, type };
 }
 
 export function filePath(file: File): string {
