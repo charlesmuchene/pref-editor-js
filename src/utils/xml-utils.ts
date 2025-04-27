@@ -1,4 +1,4 @@
-import { Preferences, TypeTag } from "../types/type";
+import { Preference, Preferences, TypeTag } from "../types/type";
 import { XMLParser } from "fast-xml-parser";
 import { STRINGSET_SEPARATOR } from "./utils";
 
@@ -45,4 +45,25 @@ export const parseKeyValue = (buffer: Buffer<ArrayBufferLike>): Preferences => {
       tag: createTag(type),
     }));
   });
+};
+
+export const encodeKeyValuePreference = (preference: Preference): string => {
+  switch (preference.tag) {
+    case TypeTag.INTEGER:
+      return `<int name="${preference.key}" value="${preference.value}" />`;
+    case TypeTag.STRING:
+      return `<string name="${preference.key}">${preference.value}</string>`;
+    case TypeTag.STRINGSET: {
+      const entries = preference.value
+        .split(STRINGSET_SEPARATOR)
+        .map((entry) => `<string>${entry}</string>`)
+        .join("\n");
+      return `<set name="${preference.key}">\n${entries}\n</set>`;
+    }
+    default: {
+      return `<${preference.tag.toLowerCase()} name="${
+        preference.key
+      }" value="${preference.value}" />`;
+    }
+  }
 };

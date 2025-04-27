@@ -3,7 +3,12 @@ import assert from "assert";
 
 export const STRINGSET_SEPARATOR = "|";
 
-export function createFile(filename: string): File {
+const extractSegments = (url: URL) =>
+  url.pathname
+    ? url.pathname.split("/").filter((segment) => segment !== "")
+    : [];
+
+export const fileTypeFromName = (filename: string): FileType => {
   const type = filename.endsWith(".xml")
     ? FileType.KEY_VALUE
     : filename.endsWith(".preferences_pb")
@@ -11,7 +16,17 @@ export function createFile(filename: string): File {
     : undefined;
 
   if (!type) throw new Error("Unknown file type");
+  return type;
+};
 
+export const fileTypeFromUrl = (url: URL): FileType => {
+  const segments = extractSegments(url);
+  const filename = segments[segments.length - 1];
+  return fileTypeFromName(filename);
+};
+
+export function createFile(filename: string): File {
+  const type = fileTypeFromName(filename);
   return { name: filename, type };
 }
 
@@ -28,11 +43,6 @@ export function filePath(file: File): string {
 export const validUrl = (url: URL): boolean => {
   return url.protocol.startsWith("pref-editor");
 };
-
-const extractSegments = (url: URL) =>
-  url.pathname
-    ? url.pathname.split("/").filter((segment) => segment !== "")
-    : [];
 
 export const createConnection = (url: URL): Connection => {
   assert(url.hostname, "Device serial not found in URL");

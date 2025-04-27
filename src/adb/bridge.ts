@@ -1,3 +1,4 @@
+import { Op } from "./operations";
 import { Apps, Files, FileType } from "./../types/type";
 import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
 import { Devices } from "../types/type";
@@ -78,7 +79,7 @@ export const readPreferences = async (url: URL) => {
   throw new Error("Unknown file type");
 };
 
-export const writePreferences = async (
+export const writeToDatastore = async (
   url: URL,
   data: Uint8Array<ArrayBufferLike>
 ) => {
@@ -89,5 +90,34 @@ export const writePreferences = async (
   await shell(
     connection.device,
     `run-as ${connection.app} sh -c 'echo ${encodedData} | base64 -d | dd of=${path} status=none'`
+  );
+};
+
+export const writeToKeyValue = async (
+  url: URL,
+  op: Op,
+  matcher: string,
+  content?: string
+) => {
+  const connection = createConnection(url);
+  const file = createFile(connection.file!);
+  const path = filePath(file);
+  let expression: string;
+  switch (op) {
+    case Op.ADD:
+      expression = `/${matcher}/i${content}`;
+      break;
+    case Op.CHANGE:
+      expression = `s/${matcher}/${content}/`;
+      break;
+    case Op.DELETE:
+      expression = `/${matcher}/d`;
+      break;
+    default:
+      throw new Error(`Unknown operation: ${op}`);
+  }
+  await shell(
+    connection.device,
+    `run-as ${connection.app} sed -Ei -e '${expression}' ${path}`
   );
 };
