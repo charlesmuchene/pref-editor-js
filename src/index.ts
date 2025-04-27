@@ -19,4 +19,10 @@ export {
   readPreferences,
 } from "./adb/bridge";
 
+export {
+  addPreference,
+  changePreference,
+  deletePreference,
+} from "./adb/operations";
+
 export { createFile } from "./utils/utils";
