@@ -19,15 +19,12 @@
     "datastore",
     "android"
   ],
-  "author": {
-    "name": "Charles Muchene",
-    "url": "https://charlesmuchene.com"
-  },
+  "author": "Charles Muchene <muchene.kazi@gmail.com> (https://charlesmuchene.com)",
   "license": "Apache-2.0",
   "description": "View and Edit Android preferences ",
   "repository": {
     "type": "git",
-    "url": "https://github.com/charlesmuchene/pref-editor-js.git"
+    "url": "git+https://github.com/charlesmuchene/pref-editor-js.git"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.1",
@@ -43,5 +40,9 @@
     "@devicefarmer/adbkit": "^3.3.8",
     "fast-xml-parser": "^5.2.1",
     "protobufjs": "^7.5.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/charlesmuchene/pref-editor-js/issues"
+  },
+  "homepage": "https://github.com/charlesmuchene/pref-editor-js#readme"
 }
