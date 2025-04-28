@@ -13,5 +13,8 @@ export default tseslint.config(
         { argsIgnorePattern: "^_" },
       ],
     },
+  },
+  {
+    ignores: ["src/protos/*.js", "src/protos/*.d.ts"],
   }
 );
