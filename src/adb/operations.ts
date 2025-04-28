@@ -1,4 +1,5 @@
 import {
+  Connection,
   FileType,
   PartialPreference,
   Preference,
@@ -6,7 +7,7 @@ import {
 } from "../types/type";
 import { encodeDatastorePrefs } from "../utils/proto-utils";
 import { readPreferences, writeToDatastore, writeToKeyValue } from "./bridge";
-import { fileTypeFromUrl, validUrl } from "../utils/utils";
+import { fileTypeFromName } from "../utils/utils";
 import { encodeKeyValuePreference } from "../utils/xml-utils";
 
 export enum Op {
@@ -17,24 +18,25 @@ export enum Op {
 
 const escape = (content: string) => content.replace(/\//g, "\\/").trim();
 
-export const addPreference = async (preference: Preference, url: URL) => {
-  if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);
-
-  const prefs: Preferences = await readPreferences(url);
+export const addPreference = async (
+  preference: Preference,
+  connection: Connection
+) => {
+  const prefs: Preferences = await readPreferences(connection);
 
   if (prefs.some((p) => p.key === preference.key))
     throw new Error(`Preference already exists: ${preference.key}`);
 
-  switch (fileTypeFromUrl(url)) {
+  switch (fileTypeFromName(connection.filename!)) {
     case FileType.DATA_STORE:
       {
         prefs.push(preference);
-        await writeToDatastore(url, encodeDatastorePrefs(prefs));
+        await writeToDatastore(connection, encodeDatastorePrefs(prefs));
       }
       break;
     case FileType.KEY_VALUE:
       await writeToKeyValue(
-        url,
+        connection,
         Op.ADD,
         escape("</map>"),
         escape(encodeKeyValuePreference(preference))
@@ -45,23 +47,21 @@ export const addPreference = async (preference: Preference, url: URL) => {
 
 export const deletePreference = async (
   preference: PartialPreference,
-  url: URL
+  connection: Connection
 ) => {
-  if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);
-
-  const prefs: Preferences = await readPreferences(url);
+  const prefs: Preferences = await readPreferences(connection);
 
   const index = prefs.findIndex((p) => p.key === preference.key);
   if (index === -1) throw new Error(`Preference not found: ${preference.key}`);
 
-  switch (fileTypeFromUrl(url)) {
+  switch (fileTypeFromName(connection.filename!)) {
     case FileType.DATA_STORE:
       prefs.splice(index, 1);
-      await writeToDatastore(url, encodeDatastorePrefs(prefs));
+      await writeToDatastore(connection, encodeDatastorePrefs(prefs));
       break;
     case FileType.KEY_VALUE:
       await writeToKeyValue(
-        url,
+        connection,
         Op.DELETE,
         escape(encodeKeyValuePreference(prefs[index]))
       );
@@ -71,11 +71,9 @@ export const deletePreference = async (
 
 export const changePreference = async (
   preference: PartialPreference,
-  url: URL
+  connection: Connection
 ) => {
-  if (!validUrl(url)) throw new Error(`Invalid URL: ${url}`);
-
-  const prefs: Preferences = await readPreferences(url);
+  const prefs: Preferences = await readPreferences(connection);
 
   const index = prefs.findIndex((p) => p.key === preference.key);
   if (index === -1) throw new Error(`Preference not found: ${preference.key}`);
@@ -85,16 +83,16 @@ export const changePreference = async (
     value: preference.value,
     tag: existing.tag,
   };
-  switch (fileTypeFromUrl(url)) {
+  switch (fileTypeFromName(connection.filename!)) {
     case FileType.DATA_STORE:
       {
         prefs[index] = newPref;
-        await writeToDatastore(url, encodeDatastorePrefs(prefs));
+        await writeToDatastore(connection, encodeDatastorePrefs(prefs));
       }
       break;
     case FileType.KEY_VALUE:
       await writeToKeyValue(
-        url,
+        connection,
         Op.CHANGE,
         escape(encodeKeyValuePreference(existing)),
         escape(encodeKeyValuePreference(newPref))

@@ -53,7 +53,7 @@ export interface Preference extends PartialPreference {
 }
 
 export interface Connection {
-  device: string;
-  app?: string;
-  file?: string;
+  deviceId: string;
+  appId?: string;
+  filename?: string;
 }

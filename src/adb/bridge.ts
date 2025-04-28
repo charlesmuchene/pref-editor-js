@@ -1,10 +1,10 @@
 import { Op } from "./operations";
-import { Apps, Files, FileType } from "./../types/type";
+import { Apps, Connection, Files, FileType } from "./../types/type";
 import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
 import { Devices } from "../types/type";
 import { decodeDatastorePrefs } from "../utils/proto-utils";
 import { parseKeyValue as decodeKeyValuePrefs } from "../utils/xml-utils";
-import { createConnection, createFile, filePath } from "../utils/utils";
+import { createFile, filePath } from "../utils/utils";
 
 const client = Adb.createClient();
 
@@ -20,10 +20,12 @@ export const listDevices: () => Promise<Devices> = async () =>
       devices.map((device) => ({ serial: device.id, state: device.type }))
     );
 
-export const listApps: (url: URL) => Promise<Apps> = async (url) =>
+export const listApps: (connection: Connection) => Promise<Apps> = async (
+  connection
+) =>
   (
     await shell(
-      createConnection(url).device,
+      connection.deviceId,
       "pm list packages -3 --user 0 | sed 's/^package://g' | sort"
     )
   )
@@ -36,13 +38,14 @@ export const listApps: (url: URL) => Promise<Apps> = async (url) =>
       };
     });
 
-export const listFiles: (url: URL) => Promise<Files> = async (url) => {
-  const connection = createConnection(url);
-  return Promise.all([
+export const listFiles: (connection: Connection) => Promise<Files> = async (
+  connection
+) =>
+  Promise.all([
     (
       await shell(
-        connection.device,
-        `run-as ${connection.app} ls shared_prefs | grep "xml$"`
+        connection.deviceId,
+        `run-as ${connection.appId} ls shared_prefs | grep "xml$"`
       )
     )
       .toString()
@@ -53,8 +56,8 @@ export const listFiles: (url: URL) => Promise<Files> = async (url) => {
       }),
     (
       await shell(
-        connection.device,
-        `run-as ${connection.app} ls files/datastore | grep "_pb$"`
+        connection.deviceId,
+        `run-as ${connection.appId} ls files/datastore | grep "_pb$"`
       )
     )
       .toString()
@@ -64,14 +67,12 @@ export const listFiles: (url: URL) => Promise<Files> = async (url) => {
         return { name: line.trim(), type: FileType.DATA_STORE };
       }),
   ]);
-};
 
-export const readPreferences = async (url: URL) => {
-  const connection = createConnection(url);
-  const file = createFile(connection.file!);
+export const readPreferences = async (connection: Connection) => {
+  const file = createFile(connection.filename!);
   const output = await shell(
-    connection.device,
-    `run-as ${connection.app} cat ${filePath(file)}`
+    connection.deviceId,
+    `run-as ${connection.appId} cat ${filePath(file)}`
   );
   if (file.type === FileType.KEY_VALUE) return decodeKeyValuePrefs(output);
   if (file.type === FileType.DATA_STORE) return decodeDatastorePrefs(output);
@@ -80,27 +81,25 @@ export const readPreferences = async (url: URL) => {
 };
 
 export const writeToDatastore = async (
-  url: URL,
+  connection: Connection,
   data: Uint8Array<ArrayBufferLike>
 ) => {
-  const connection = createConnection(url);
-  const file = createFile(connection.file!);
+  const file = createFile(connection.filename!);
   const path = filePath(file);
   const encodedData = Buffer.from(data).toString("base64");
   await shell(
-    connection.device,
-    `run-as ${connection.app} sh -c 'echo ${encodedData} | base64 -d | dd of=${path} status=none'`
+    connection.deviceId,
+    `run-as ${connection.appId} sh -c 'echo ${encodedData} | base64 -d | dd of=${path} status=none'`
   );
 };
 
 export const writeToKeyValue = async (
-  url: URL,
+  connection: Connection,
   op: Op,
   matcher: string,
   content?: string
 ) => {
-  const connection = createConnection(url);
-  const file = createFile(connection.file!);
+  const file = createFile(connection.filename!);
   const path = filePath(file);
   let expression: string;
   switch (op) {
@@ -117,7 +116,7 @@ export const writeToKeyValue = async (
       throw new Error(`Unknown operation: ${op}`);
   }
   await shell(
-    connection.device,
-    `run-as ${connection.app} sed -Ei -e '${expression}' ${path}`
+    connection.deviceId,
+    `run-as ${connection.appId} sed -Ei -e '${expression}' ${path}`
   );
 };

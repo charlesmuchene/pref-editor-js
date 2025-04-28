@@ -9,6 +9,7 @@ export {
   FileType,
   Preferences,
   TypeTag,
+  Connection,
   PartialPreference,
 } from "./types/type";
 

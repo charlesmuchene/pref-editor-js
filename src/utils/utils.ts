@@ -1,13 +1,6 @@
-import { Connection, File, FileType } from "../types/type";
-import assert from "assert";
+import { File, FileType } from "../types/type";
 
 export const STRINGSET_SEPARATOR = "|";
-
-const extractSegments = (url: URL) =>
-  url.pathname
-    ? url.pathname.split("/").filter((segment) => segment !== "")
-    : [];
-
 export const fileTypeFromName = (filename: string): FileType => {
   const type = filename.endsWith(".xml")
     ? FileType.KEY_VALUE
@@ -17,12 +10,6 @@ export const fileTypeFromName = (filename: string): FileType => {
 
   if (!type) throw new Error("Unknown file type");
   return type;
-};
-
-export const fileTypeFromUrl = (url: URL): FileType => {
-  const segments = extractSegments(url);
-  const filename = segments[segments.length - 1];
-  return fileTypeFromName(filename);
 };
 
 export function createFile(name: string): File {
@@ -42,14 +29,4 @@ export function filePath(file: File): string {
 
 export const validUrl = (url: URL): boolean => {
   return url.protocol.startsWith("pref-editor");
-};
-
-export const createConnection = (url: URL): Connection => {
-  assert(url.hostname, "Device serial not found in URL");
-  const segments = extractSegments(url);
-  return {
-    device: url.hostname,
-    app: segments[0],
-    file: segments[1],
-  };
 };
