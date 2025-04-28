@@ -3,6 +3,7 @@ import {
   FileType,
   PartialPreference,
   Preference,
+  PreferenceKey,
   Preferences,
 } from "../types/type";
 import { encodeDatastorePrefs } from "../utils/proto-utils";
@@ -46,13 +47,13 @@ export const addPreference = async (
 };
 
 export const deletePreference = async (
-  preference: PartialPreference,
+  prefKey: PreferenceKey,
   connection: Connection
 ) => {
   const prefs: Preferences = await readPreferences(connection);
 
-  const index = prefs.findIndex((p) => p.key === preference.key);
-  if (index === -1) throw new Error(`Preference not found: ${preference.key}`);
+  const index = prefs.findIndex((p) => p.key === prefKey.key);
+  if (index === -1) throw new Error(`Preference not found: ${prefKey.key}`);
 
   switch (fileTypeFromName(connection.filename!)) {
     case FileType.DATA_STORE:

@@ -41,12 +41,15 @@ export interface File {
   type: FileType;
 }
 
-export interface PartialPreference {
+export type Preferences = Array<Preference>;
+
+export interface PreferenceKey {
   key: string;
-  value: string;
 }
 
-export type Preferences = Array<Preference>;
+export interface PartialPreference extends PreferenceKey {
+  value: string;
+}
 
 export interface Preference extends PartialPreference {
   tag: TypeTag;

@@ -10,6 +10,7 @@ export {
   Preferences,
   TypeTag,
   Connection,
+  PreferenceKey,
   PartialPreference,
 } from "./types/type";
 
@@ -25,5 +26,3 @@ export {
   changePreference,
   deletePreference,
 } from "./adb/operations";
-
-export { createFile } from "./utils/utils";
