@@ -4,7 +4,7 @@ import { STRINGSET_SEPARATOR } from "./utils";
 
 function extractTypeValue(value: IValue): {
   value: string;
-  tag: TypeTag;
+  type: TypeTag;
 } {
   if (!(value instanceof Value) || !value.value)
     throw new Error(`Unknown value: ${value}`);
@@ -26,7 +26,7 @@ function extractTypeValue(value: IValue): {
   }
 
   return {
-    tag,
+    type: tag,
     value: result,
   };
 }
@@ -47,7 +47,7 @@ export const encodeDatastorePrefs = (preferences: Preferences): Uint8Array => {
   const entries = new Map(
     preferences.map((pref) => {
       let value: StringSet | Uint8Array | string | boolean;
-      switch (pref.tag) {
+      switch (pref.type) {
         case TypeTag.STRINGSET:
           value = StringSet.fromObject({
             strings: pref.value.split(STRINGSET_SEPARATOR),
@@ -68,7 +68,7 @@ export const encodeDatastorePrefs = (preferences: Preferences): Uint8Array => {
       return [
         `${pref.key}`,
         Value.fromObject({
-          [`${pref.tag.toString()}`]: value,
+          [`${pref.type.toString()}`]: value,
         }),
       ];
     })

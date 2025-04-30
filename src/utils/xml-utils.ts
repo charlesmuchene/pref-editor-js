@@ -2,7 +2,7 @@ import { Preference, Preferences, TypeTag } from "../types/type";
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import { STRINGSET_SEPARATOR } from "./utils";
 
-const createTag = (key: string) => {
+const createTypeTag = (key: string) => {
   switch (key) {
     case "int":
       return TypeTag.INTEGER;
@@ -42,7 +42,7 @@ export const parseKeyValue = (buffer: Buffer<ArrayBufferLike>): Preferences => {
     return (Array.isArray(entry) ? entry : [entry]).map((item) => ({
       key: item.name,
       value: getValue(type, item),
-      tag: createTag(type),
+      type: createTypeTag(type),
     }));
   });
 };
@@ -54,7 +54,7 @@ export const encodeKeyValuePreference = (preference: Preference): string => {
     ignoreAttributes: false,
     suppressEmptyNode: true,
   });
-  switch (preference.tag) {
+  switch (preference.type) {
     case TypeTag.INTEGER:
       return builder.build({
         int: { "@_name": preference.key, "@_value": preference.value },
@@ -75,7 +75,7 @@ export const encodeKeyValuePreference = (preference: Preference): string => {
     }
     default: {
       return builder.build({
-        [`${preference.tag.toLowerCase()}`]: {
+        [`${preference.type.toLowerCase()}`]: {
           "@_name": preference.key,
           "@_value": preference.value,
         },

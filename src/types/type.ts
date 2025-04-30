@@ -52,7 +52,7 @@ export interface PartialPreference extends PreferenceKey {
 }
 
 export interface Preference extends PartialPreference {
-  tag: TypeTag;
+  type: TypeTag;
 }
 
 export interface Connection {

@@ -79,10 +79,10 @@ export const changePreference = async (
   const index = prefs.findIndex((p) => p.key === preference.key);
   if (index === -1) throw new Error(`Preference not found: ${preference.key}`);
   const existing = prefs[index];
-  const newPref = {
+  const newPref: Preference = {
     key: existing.key,
     value: preference.value,
-    tag: existing.tag,
+    type: existing.type,
   };
   switch (fileTypeFromName(connection.filename!)) {
     case FileType.DATA_STORE:
