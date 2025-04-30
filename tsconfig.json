@@ -12,7 +12,8 @@
         "strict": true,
         "noImplicitAny": true,
         "strictNullChecks": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "removeComments": true
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]
