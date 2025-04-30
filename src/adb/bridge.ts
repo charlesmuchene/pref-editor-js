@@ -1,5 +1,11 @@
 import { Op } from "./operations";
-import { Apps, Connection, Files, FileType } from "./../types/type";
+import {
+  Apps,
+  Connection,
+  Files,
+  FileType,
+  Preferences,
+} from "./../types/type";
 import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
 import { Devices } from "../types/type";
 import { decodeDatastorePrefs } from "../utils/proto-utils";
@@ -68,7 +74,9 @@ export const listFiles: (connection: Connection) => Promise<Files> = async (
       }),
   ]);
 
-export const readPreferences = async (connection: Connection) => {
+export const readPreferences: (
+  connection: Connection
+) => Promise<Preferences> = async (connection: Connection) => {
   const file = createFile(connection.filename!);
   const output = await shell(
     connection.deviceId,
