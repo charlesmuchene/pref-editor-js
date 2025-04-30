@@ -42,7 +42,7 @@ export const listFiles: (connection: Connection) => Promise<Files> = async (
   connection
 ) =>
   Promise.all([
-    (
+    ...(
       await shell(
         connection.deviceId,
         `run-as ${connection.appId} ls shared_prefs | grep "xml$"`
@@ -54,7 +54,7 @@ export const listFiles: (connection: Connection) => Promise<Files> = async (
       .map((line: string) => {
         return { name: line.trim(), type: FileType.KEY_VALUE };
       }),
-    (
+    ...(
       await shell(
         connection.deviceId,
         `run-as ${connection.appId} ls files/datastore | grep "_pb$"`
