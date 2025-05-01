@@ -5,6 +5,7 @@ node_modules/
 *.js
 *.js.map
 !**/message.js
+!jest.config.js
 
 # Logs
 logs/

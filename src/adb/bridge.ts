@@ -6,25 +6,17 @@ import {
   FileType,
   Preferences,
 } from "./../types/type";
-import Adb, { Device as FarmDevice } from "@devicefarmer/adbkit";
 import { Devices } from "../types/type";
 import { decodeDatastorePrefs } from "../utils/proto-utils";
 import { parseKeyValue as decodeKeyValuePrefs } from "../utils/xml-utils";
 import { createFile, filePath } from "../utils/utils";
+import client from "./client";
 
-const client = Adb.createClient();
-
-const shell = async (serial: string, command: string) => {
-  const stream = await client.getDevice(serial).shell(command);
-  return await Adb.util.readAll(stream);
-};
+const shell = async (serial: string, command: string) =>
+  client.shell(serial, command);
 
 export const listDevices: () => Promise<Devices> = async () =>
-  await client
-    .listDevices()
-    .then((devices: FarmDevice[]) =>
-      devices.map((device) => ({ serial: device.id, state: device.type }))
-    );
+  client.listDevices();
 
 export const listApps: (connection: Connection) => Promise<Apps> = async (
   connection
@@ -55,8 +47,8 @@ export const listFiles: (connection: Connection) => Promise<Files> = async (
       )
     )
       .toString()
-      .trim()
       .split("\n")
+      .filter((line) => line.trim().length > 0)
       .map((line: string) => {
         return { name: line.trim(), type: FileType.KEY_VALUE };
       }),
@@ -67,8 +59,8 @@ export const listFiles: (connection: Connection) => Promise<Files> = async (
       )
     )
       .toString()
-      .trim()
       .split("\n")
+      .filter((line) => line.trim().length > 0)
       .map((line: string) => {
         return { name: line.trim(), type: FileType.DATA_STORE };
       }),
