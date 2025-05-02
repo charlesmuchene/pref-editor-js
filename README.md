@@ -37,7 +37,8 @@ See the [Pref-Editor MCP server](https://github.com/charlesmuchene/pref-editor-m
 
 ## Build
 
-`npm run build`
+- `npm install`
+- `npm run build`
 
 ## Contributing
 

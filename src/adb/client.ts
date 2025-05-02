@@ -21,8 +21,13 @@ class FarmClient implements AdbClient {
     serial: string,
     command: string
   ): Promise<Buffer<ArrayBufferLike>> {
-    const stream = await this.client.getDevice(serial).shell(command);
-    return await Adb.util.readAll(stream);
+    try {
+      const device = this.client.getDevice(serial);
+      const stream = await device.shell(command);
+      return await Adb.util.readAll(stream);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 }
 

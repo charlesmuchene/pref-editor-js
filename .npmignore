@@ -10,3 +10,5 @@ src/
 eslint.config.mjs
 tsconfig.json
 test
+jest.config.js
+CONTRIBUTING.md

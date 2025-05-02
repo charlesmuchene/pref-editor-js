@@ -8,7 +8,11 @@ import {
 } from "../types/type";
 import { encodeDatastorePrefs } from "../utils/proto-utils";
 import { readPreferences, writeToDatastore, writeToKeyValue } from "./bridge";
-import { fileTypeFromName } from "../utils/utils";
+import {
+  assertType,
+  filenameWithExtension,
+  fileTypeFromName,
+} from "../utils/utils";
 import { encodeKeyValuePreference } from "../utils/xml-utils";
 
 export enum Op {
@@ -23,6 +27,13 @@ export const addPreference = async (
   preference: Preference,
   connection: Connection
 ) => {
+  assertType(preference.value, preference.type);
+
+  if (connection.filename)
+    connection = Object.assign(connection, {
+      filename: await filenameWithExtension(connection),
+    });
+
   const prefs: Preferences = await readPreferences(connection);
 
   if (prefs.some((p) => p.key === preference.key))
@@ -50,6 +61,10 @@ export const deletePreference = async (
   prefKey: PreferenceKey,
   connection: Connection
 ) => {
+  if (connection.filename)
+    connection = Object.assign(connection, {
+      filename: await filenameWithExtension(connection),
+    });
   const prefs: Preferences = await readPreferences(connection);
 
   const index = prefs.findIndex((p) => p.key === prefKey.key);
@@ -74,11 +89,18 @@ export const changePreference = async (
   preference: PartialPreference,
   connection: Connection
 ) => {
+  if (connection.filename)
+    connection = Object.assign(connection, {
+      filename: await filenameWithExtension(connection),
+    });
   const prefs: Preferences = await readPreferences(connection);
 
   const index = prefs.findIndex((p) => p.key === preference.key);
   if (index === -1) throw new Error(`Preference not found: ${preference.key}`);
+
   const existing = prefs[index];
+  assertType(preference.value, existing.type);
+
   const newPref: Preference = {
     key: existing.key,
     value: preference.value,

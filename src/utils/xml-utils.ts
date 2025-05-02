@@ -36,15 +36,19 @@ export const parseKeyValue = (buffer: Buffer<ArrayBufferLike>): Preferences => {
     ignoreAttributes: false,
     attributeNamePrefix: "",
   });
-  const map = parser.parse(buffer).map;
-  return Object.keys(map).flatMap((type) => {
-    const entry: Entry = map[type];
-    return (Array.isArray(entry) ? entry : [entry]).map((item) => ({
-      key: item.name,
-      value: getValue(type, item),
-      type: createTypeTag(type),
-    }));
-  });
+  try {
+    const map = parser.parse(buffer).map;
+    return Object.keys(map).flatMap((type) => {
+      const entry: Entry = map[type];
+      return (Array.isArray(entry) ? entry : [entry]).map((item) => ({
+        key: item.name,
+        value: getValue(type, item),
+        type: createTypeTag(type),
+      }));
+    });
+  } catch {
+    throw new Error("Malformed key-value preferences");
+  }
 };
 
 export const encodeKeyValuePreference = (preference: Preference): string => {
@@ -53,6 +57,7 @@ export const encodeKeyValuePreference = (preference: Preference): string => {
     indentBy: " ".repeat(4),
     ignoreAttributes: false,
     suppressEmptyNode: true,
+    suppressBooleanAttributes: false,
   });
   switch (preference.type) {
     case TypeTag.INTEGER:

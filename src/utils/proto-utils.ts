@@ -33,15 +33,20 @@ function extractTypeValue(value: IValue): {
 
 export const decodeDatastorePrefs = (
   buffer: Buffer<ArrayBufferLike>
-): Preferences =>
-  Object.entries(PreferenceMap.decode(buffer).preferences).map(
-    ([key, value]) => {
-      return {
-        key,
-        ...extractTypeValue(value),
-      };
-    }
-  );
+): Preferences => {
+  try {
+    return Object.entries(PreferenceMap.decode(buffer).preferences).map(
+      ([key, value]) => {
+        return {
+          key,
+          ...extractTypeValue(value),
+        };
+      }
+    );
+  } catch {
+    throw new Error("Malformed datastore preferences");
+  }
+};
 
 export const encodeDatastorePrefs = (preferences: Preferences): Uint8Array => {
   const entries = new Map(
