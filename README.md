@@ -11,14 +11,26 @@
 
 ## Usage
 
+Install the [package](https://www.npmjs.com/package/@charlesmuchene/pref-editor):
+
+```sh
+npm i @charlesmuchene/pref-editor
+```
+
+Sample code to change a user preference:
+
 ```ts
-import { Preference, TypeTag, changePreference } from "@charlesmuchene/pref-editor";
+import {
+    Preference,
+    TypeTag,
+    changePreference,
+} from "@charlesmuchene/pref-editor";
 
 const connection = {
-    deviceId: 'emulator-5554',
-    appId: 'com.charlesmuchene.datastore',
-    filename: 'settings.preferences_pb',
-}
+    deviceId: "emulator-5554",
+    appId: "com.charlesmuchene.datastore",
+    filename: "settings.preferences_pb",
+};
 
 const pref: Preference = {
     key: "isVisited",
@@ -29,7 +41,7 @@ const pref: Preference = {
 changePreference(pref, connection);
 ```
 
-See the [Pref-Editor MCP server](https://github.com/charlesmuchene/pref-editor-mcp-server) project on more usages.
+See the [Android Preferences Editor MCP server](https://github.com/charlesmuchene/pref-editor-mcp-server) project on more usages.
 
 ## Known issues
 
@@ -37,8 +49,14 @@ See the [Pref-Editor MCP server](https://github.com/charlesmuchene/pref-editor-m
 
 ## Build
 
-- `npm install`
-- `npm run build`
+```sh
+# Clone the repository
+git clone https://github.com/charlesmuchene/pref-editor-js.git
+cd pref-editor
+
+# Install dependencies and build
+npm install
+```
 
 ## Contributing
 
@@ -47,3 +65,7 @@ See [Contributing](./CONTRIBUTING.md).
 ## License
 
 See [LICENSE](./LICENSE)
+
+## Contact
+
+For questions or support, reach out via [GitHub Issues](https://github.com/charlesmuchene/pref-editor-js/issues).
