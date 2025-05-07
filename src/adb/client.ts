@@ -7,7 +7,9 @@ export interface AdbClient {
 }
 
 class FarmClient implements AdbClient {
-  client = Adb.createClient();
+  client = Adb.createClient({
+    host: process.env.PREF_EDITOR_ADB_HOST
+  });
 
   async listDevices(): Promise<Devices> {
     return this.client
