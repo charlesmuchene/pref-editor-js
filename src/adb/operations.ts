@@ -76,11 +76,7 @@ export const deletePreference = async (
       await writeToDatastore(connection, encodeDatastorePrefs(prefs));
       break;
     case FileType.KEY_VALUE:
-      await writeToKeyValue(
-        connection,
-        Op.DELETE,
-        escape(encodeKeyValuePreference(prefs[index]))
-      );
+      await writeToKeyValue(connection, Op.DELETE, createMatcher(prefs[index]));
       break;
   }
 };
@@ -117,9 +113,15 @@ export const changePreference = async (
       await writeToKeyValue(
         connection,
         Op.CHANGE,
-        escape(encodeKeyValuePreference(existing)),
+        createMatcher(existing),
         escape(encodeKeyValuePreference(newPref))
       );
       break;
   }
+};
+
+const createMatcher = (preference: Preference): string => {
+  const encode = encodeKeyValuePreference(preference).trim();
+  const result = encode.slice(0, encode.length - 2); // remove '/>'
+  return escape(`${result}.*$`);
 };
