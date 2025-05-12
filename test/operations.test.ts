@@ -77,7 +77,7 @@ describe("Operations", () => {
 
     expect(mock).toHaveBeenCalledWith(
       connection.deviceId,
-      `run-as ${connection.appId} sed -Ei -e 's/<boolean name="${pref.key}" value="true".*$/<boolean name="${pref.key}" value="${pref.value}"\\/>/' shared_prefs/${connection.filename}`
+      `run-as ${connection.appId} sed -Ei -e 's/<boolean name="${pref.key}" value="true".*$/<boolean name="${pref.key}" value="${pref.value}" \\/>/' shared_prefs/${connection.filename}`
     );
   });
 

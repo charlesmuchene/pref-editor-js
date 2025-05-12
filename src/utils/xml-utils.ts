@@ -2,6 +2,8 @@ import { Preference, Preferences, TypeTag } from "../types/type";
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import { STRINGSET_SEPARATOR } from "./utils";
 
+const INDENTATION = " ".repeat(4);
+
 const createTypeTag = (key: string) => {
   switch (key) {
     case "int":
@@ -54,22 +56,25 @@ export const parseKeyValue = (buffer: Buffer<ArrayBufferLike>): Preferences => {
 export const encodeKeyValuePreference = (preference: Preference): string => {
   const builder = new XMLBuilder({
     format: true,
-    indentBy: " ".repeat(4),
+    indentBy: INDENTATION,
     ignoreAttributes: false,
     suppressEmptyNode: true,
     suppressBooleanAttributes: false,
   });
+  let line: string;
   switch (preference.type) {
     case TypeTag.INTEGER:
-      return builder.build({
+      line = builder.build({
         int: { "@_name": preference.key, "@_value": preference.value },
       });
+      break;
     case TypeTag.STRING:
-      return builder.build({
+      line = builder.build({
         string: { "@_name": preference.key, "#text": preference.value },
       });
-    case TypeTag.STRINGSET: {
-      return builder.build({
+      break;
+    case TypeTag.STRINGSET:
+      line = builder.build({
         set: {
           "@_name": preference.key,
           string: preference.value
@@ -77,14 +82,15 @@ export const encodeKeyValuePreference = (preference: Preference): string => {
             .map((entry) => ({ "#text": entry })),
         },
       });
-    }
-    default: {
-      return builder.build({
+      break;
+    default:
+      line = builder.build({
         [`${preference.type.toLowerCase()}`]: {
           "@_name": preference.key,
           "@_value": preference.value,
         },
       });
-    }
   }
+  line = line.trimEnd();
+  return line.endsWith("/>") ? `${line.slice(0, line.length - 2)} />` : line;
 };

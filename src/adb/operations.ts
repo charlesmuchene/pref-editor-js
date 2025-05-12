@@ -120,8 +120,17 @@ export const changePreference = async (
   }
 };
 
+/**
+ * Create a matcher string
+ *
+ * @deprecated Remove before 1.0. Backwards compatibility with < 0.3.2
+ *
+ * @param preference The user preference to find
+ * @returns String representation to find preference
+ */
 const createMatcher = (preference: Preference): string => {
-  const encode = encodeKeyValuePreference(preference).trim();
-  const result = encode.slice(0, encode.length - 2); // remove '/>'
+  const encode = encodeKeyValuePreference(preference).trimEnd();
+  if (!encode.endsWith("/>")) return encode;
+  const result = encode.slice(0, encode.length - 2).trimEnd(); // remove ' />'
   return escape(`${result}.*$`);
 };
