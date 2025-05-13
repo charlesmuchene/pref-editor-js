@@ -14,6 +14,8 @@ import {
   fileTypeFromName,
 } from "../utils/utils";
 import { encodeKeyValuePreference } from "../utils/xml-utils";
+import { setInterval } from "node:timers/promises";
+import { Readable } from "node:stream";
 
 export enum Op {
   ADD = "add",
@@ -133,4 +135,59 @@ const createMatcher = (preference: Preference): string => {
   if (!encode.endsWith("/>")) return encode;
   const result = encode.slice(0, encode.length - 2).trimEnd(); // remove ' />'
   return escape(`${result}.*$`);
+};
+
+const watchIntervalMs = process.env.PREF_EDITOR_WATCHER_INTERVAL_MS
+  ? Number(process.env.PREF_EDITOR_WATCHER_INTERVAL_MS)
+  : 3000;
+
+export const watchPreference = async (
+  key: PreferenceKey,
+  connection: Connection
+) => {
+  if (isNaN(watchIntervalMs) || watchIntervalMs <= 0)
+    throw new Error("PREF_EDITOR_WATCHER_INTERVAL_MS should be a number > 0");
+
+  if (connection.filename)
+    connection = Object.assign(connection, {
+      filename: await filenameWithExtension(connection),
+    });
+
+  const existing = (await readPreferences(connection)).find(
+    (p) => p.key === key.key
+  );
+  if (!existing) throw new Error(`Preference not found: ${key.key}`);
+
+  let shouldStopRead = false;
+
+  const close = () => {
+    shouldStopRead = true;
+    stream.destroy();
+  };
+
+  async function* readPref() {
+    console.log("Starting in generator func");
+    for await (const start of setInterval(watchIntervalMs)) {
+      if (start !== undefined)
+        throw new Error("Unknown error in watch function");
+
+      const prefs = await readPreferences(connection);
+      if (!existing) throw new Error(`Preference not found: ${key.key}`);
+
+      const pref = prefs.find((p) => p.key === existing.key);
+      if (!pref) throw new Error(`Preference not found: ${key.key}`);
+
+      if (pref.value !== existing.value) {
+        yield pref.value;
+        close();
+      }
+      if (shouldStopRead) {
+        break;
+      }
+    }
+  }
+
+  const stream = Readable.from(readPref());
+
+  return { stream, close };
 };
