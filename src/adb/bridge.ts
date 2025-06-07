@@ -15,6 +15,14 @@ import client from "./client";
 const shell = async (serial: string, command: string) =>
   client.shell(serial, command);
 
+export const freeShell = async (
+  serial: string,
+  command: string
+): Promise<string> => {
+  const output = await client.shell(serial, command);
+  return output.toString().trim();
+};
+
 export const listDevices: () => Promise<Devices> = async () =>
   client.listDevices();
 

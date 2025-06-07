@@ -15,6 +15,7 @@ export {
 } from "./types/type";
 
 export {
+  freeShell,
   listDevices,
   listApps,
   listFiles,
