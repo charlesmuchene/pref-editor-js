@@ -60,3 +60,8 @@ export interface Connection {
   appId?: string;
   filename?: string;
 }
+
+export interface PreferenceWatch {
+  stream: NodeJS.ReadableStream;
+  close: () => void;
+}

@@ -26,4 +26,5 @@ export {
   addPreference,
   changePreference,
   deletePreference,
+  watchPreference,
 } from "./adb/operations";

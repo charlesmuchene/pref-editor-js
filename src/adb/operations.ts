@@ -5,6 +5,7 @@ import {
   Preference,
   PreferenceKey,
   Preferences,
+  PreferenceWatch,
 } from "../types/type";
 import { encodeDatastorePrefs } from "../utils/proto-utils";
 import { readPreferences, writeToDatastore, writeToKeyValue } from "./bridge";
@@ -144,7 +145,7 @@ const watchIntervalMs = process.env.PREF_EDITOR_WATCHER_INTERVAL_MS
 export const watchPreference = async (
   key: PreferenceKey,
   connection: Connection
-) => {
+): Promise<PreferenceWatch> => {
   if (isNaN(watchIntervalMs) || watchIntervalMs <= 0)
     throw new Error("PREF_EDITOR_WATCHER_INTERVAL_MS should be a number > 0");
 
