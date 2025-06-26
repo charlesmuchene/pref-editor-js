@@ -12,3 +12,4 @@ tsconfig.json
 test
 jest.config.js
 CONTRIBUTING.md
+.nvmrc
