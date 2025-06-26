@@ -8,7 +8,10 @@ export interface AdbClient {
 
 class FarmClient implements AdbClient {
   client = Adb.createClient({
-    host: process.env.PREF_EDITOR_ADB_HOST
+    host: process.env.PREF_EDITOR_ADB_HOST,
+    port: process.env.PREF_EDITOR_ADB_PORT
+      ? parseInt(process.env.PREF_EDITOR_ADB_PORT, 10)
+      : 5037,
   });
 
   async listDevices(): Promise<Devices> {
