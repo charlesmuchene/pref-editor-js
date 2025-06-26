@@ -50,5 +50,8 @@
   "bugs": {
     "url": "https://github.com/charlesmuchene/pref-editor-js/issues"
   },
-  "homepage": "https://github.com/charlesmuchene/pref-editor-js#readme"
+  "homepage": "https://github.com/charlesmuchene/pref-editor-js",
+  "engines": {
+    "node": ">=24.0.0"
+  }
 }
