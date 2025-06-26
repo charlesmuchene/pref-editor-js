@@ -2,12 +2,12 @@
 
 **View** and **edit** on-device preferences: **NO ROOT** required! 🥳
 
-> Both _legacy_ **shared** preferences and **Datastore** preferences are supported! 😎
+> Both _legacy_ **shared** preferences and Preference **Datastore** are supported! 😎
 
 ## Requirements
 
-- [Node.js](https://nodejs.org)
-- Android [adb](https://developer.android.com/tools/adb)
+-   Android [adb](https://developer.android.com/tools/adb) server
+-   [Node.js](https://nodejs.org) (see [`.nvmrc`](./.nvmrc) for compatible version)
 
 ## Usage
 
@@ -41,11 +41,11 @@ const pref: Preference = {
 changePreference(pref, connection);
 ```
 
-See the [Android Preferences Editor MCP server](https://github.com/charlesmuchene/pref-editor-mcp-server) project on more usages.
+See the [Android Preferences Editor MCP server](https://github.com/charlesmuchene/pref-editor-mcp-server) project for comprehensive usages.
 
 ## Known issues
 
-- _string-set key-value_ preference type operations are partially supported
+-   _string-set key-value_ preference type _operations_ are partially supported
 
 ## Build
 
