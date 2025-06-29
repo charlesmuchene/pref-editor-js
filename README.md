@@ -17,6 +17,13 @@ Install the [package](https://www.npmjs.com/package/@charlesmuchene/pref-editor)
 npm i @charlesmuchene/pref-editor
 ```
 
+> You can override ADB **host** and **port** by setting the following environment variables:
+>
+> -   PREF_EDITOR_ADB_HOST
+> -   PREF_EDITOR_ADB_PORT
+>
+> See example [use case](https://github.com/charlesmuchene/pref-editor-mcp-server/blob/db88b548abf3509890008ca2b374407db9af0b72/Dockerfile#L4-L5).
+
 Sample code to change a user preference:
 
 ```ts
