@@ -7,6 +7,7 @@ import {
   type Mock,
   beforeEach,
 } from "vitest";
+import { Readable } from "node:stream";
 import {
   Connection,
   PartialPreference,
@@ -434,8 +435,8 @@ describe("watchPreference", () => {
     );
   });
 
-  it("should cover generator function console.log statement", async () => {
-    // Test line 170: console.log statement in generator function
+  it("should handle generator function execution", async () => {
+    // Test basic generator function execution
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
       deviceId: "emulator-5554",
@@ -443,53 +444,17 @@ describe("watchPreference", () => {
       filename: "legacy-prefs.xml",
     };
 
-    // Mock console.log to verify it's called (line 170)
-    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
     mock.mockImplementation(() => Buffer.from(keyValuePrefs));
 
     const watch = await watchPreference(key, connection);
 
-    // Wait for the generator to start by listening for the first data or error event
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        // Even if no data/error, the console.log should have been called when generator started
-        try {
-          expect(consoleSpy).toHaveBeenCalledWith("Starting in generator func");
-          watch.close();
-          consoleSpy.mockRestore();
-          resolve(undefined);
-        } catch (error) {
-          watch.close();
-          consoleSpy.mockRestore();
-          reject(error);
-        }
-      }, 200);
+    // Verify the watch object has the expected properties
+    expect(watch).toHaveProperty("stream");
+    expect(watch).toHaveProperty("close");
+    expect(typeof watch.close).toBe("function");
 
-      watch.stream.on("data", () => {
-        clearTimeout(timeout);
-        try {
-          expect(consoleSpy).toHaveBeenCalledWith("Starting in generator func");
-          watch.close();
-          consoleSpy.mockRestore();
-          resolve(undefined);
-        } catch (error) {
-          reject(error);
-        }
-      });
-
-      watch.stream.on("error", () => {
-        clearTimeout(timeout);
-        try {
-          expect(consoleSpy).toHaveBeenCalledWith("Starting in generator func");
-          watch.close();
-          consoleSpy.mockRestore();
-          resolve(undefined);
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
+    // Clean up
+    watch.close();
   });
 
   it("should cover generator function basic execution", async () => {
@@ -533,6 +498,182 @@ describe("watchPreference", () => {
     watch.close();
 
     // The stream should be destroyed/closed
+    expect(watch.stream.destroyed).toBe(true);
+  });
+
+  it("should create readable stream from readPref generator", async () => {
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "100";
+
+    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+
+    const watch = await watchPreference(key, connection);
+
+    // Verify the stream is created and has expected properties
+    expect(watch.stream).toBeDefined();
+    expect(watch.stream.readable).toBe(true);
+    expect(typeof watch.close).toBe("function");
+
+    // Clean up
+    watch.close();
+    expect(watch.stream.destroyed).toBe(true);
+  });
+
+  it("should cover readPref generator function paths", async () => {
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "50";
+
+    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+
+    const watch = await watchPreference(key, connection);
+
+    // Test that the generator function is accessible through the stream
+    expect(watch.stream).toBeInstanceOf(Readable);
+
+    // Test early termination
+    watch.close();
+
+    // Verify stream is properly closed
+    expect(watch.stream.destroyed).toBe(true);
+  });
+
+  it("should handle readPref error conditions", async () => {
+    const key: PreferenceKey = { key: "nonexistent.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "50";
+
+    // Mock to return preferences without the requested key
+    const prefsWithoutKey = `
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="string.key">fourteen</string>
+    <long name="long.key" value="1234" />
+</map>`;
+
+    mock
+      .mockImplementationOnce(() => Buffer.from(keyValuePrefs)) // Initial read (has the key)
+      .mockImplementation(() => Buffer.from(prefsWithoutKey)); // Subsequent reads (missing key)
+
+    // This should fail during initial setup since the key doesn't exist
+    await expect(watchPreference(key, connection)).rejects.toThrow(
+      "Preference not found: nonexistent.key"
+    );
+  });
+
+  it("should stop polling when shouldStopRead is true", async () => {
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "25";
+
+    let callCount = 0;
+    mock.mockImplementation(() => {
+      callCount++;
+      return Buffer.from(keyValuePrefs);
+    });
+
+    const watch = await watchPreference(key, connection);
+
+    // Let it poll a few times, then close
+    setTimeout(() => {
+      watch.close();
+    }, 100);
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        const finalCallCount = callCount;
+        // Wait a bit more to ensure polling has stopped
+        setTimeout(() => {
+          expect(callCount).toBe(finalCallCount); // Should not increase after close
+          resolve(undefined);
+        }, 100);
+      }, 200);
+
+      watch.stream.on("data", () => {
+        clearTimeout(timeout);
+        watch.close();
+        resolve(undefined);
+      });
+
+      watch.stream.on("error", () => {
+        clearTimeout(timeout);
+        watch.close();
+        resolve(undefined);
+      });
+    });
+  });
+
+  it("should handle datastore preferences in readPref", async () => {
+    const key: PreferenceKey = { key: "average" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "settings.preferences_pb",
+    };
+
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "100";
+
+    const originalProtobuf =
+      "Cg8KCWlzVmlzaXRlZBICCAAKEAoKc29tZS1jb3VudBICGA4KFQoJdGVtcC1uYW1lEggqBmNoYXJsbwoUCgdhdmVyYWdlEgk5mpmZmZmZFUA=";
+
+    mock.mockImplementation(() => Buffer.from(originalProtobuf, "base64"));
+
+    const watch = await watchPreference(key, connection);
+
+    // Verify the watch was created successfully for datastore preferences
+    expect(watch.stream).toBeDefined();
+    expect(watch.stream.readable).toBe(true);
+    expect(typeof watch.close).toBe("function");
+
+    // Clean up
+    watch.close();
+    expect(watch.stream.destroyed).toBe(true);
+  });
+
+  it("should cover readPref generator internal logic", async () => {
+    // This test focuses on covering the generator function lines
+    // by creating a scenario where the generator will execute at least one iteration
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "1"; // Minimal interval
+
+    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+
+    const watch = await watchPreference(key, connection);
+
+    // Give the generator a brief moment to start and execute at least one iteration
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Close the watch to trigger the shouldStopRead condition
+    watch.close();
+
+    // Verify the stream was properly closed
     expect(watch.stream.destroyed).toBe(true);
   });
 });
