@@ -42,10 +42,114 @@ describe("ADB Client", () => {
   });
 
   describe("Client initialization", () => {
+    it("should reject invalid IP address", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "999.999.999.999";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: undefined,
+        port: 5037,
+      });
+    });
+
+    it("should accept 127.0.0.1 as valid host", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "127.0.0.1";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "127.0.0.1",
+        port: 5037,
+      });
+    });
+
     it("should create client with default port when no environment variables are set", async () => {
       // Clear environment variables
       delete process.env.PREF_EDITOR_ADB_HOST;
       delete process.env.PREF_EDITOR_ADB_PORT;
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: undefined,
+        port: 5037,
+      });
+    });
+
+    it("should validate and use valid IP address host", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "192.168.1.100";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "192.168.1.100",
+        port: 5037,
+      });
+    });
+
+    it("should validate and use localhost", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "localhost";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "localhost",
+        port: 5037,
+      });
+    });
+
+    it("should validate and use domain name", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "adb.example.com";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "adb.example.com",
+        port: 5037,
+      });
+    });
+
+    it("should trim whitespace from host", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "  localhost  ";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "localhost",
+        port: 5037,
+      });
+    });
+
+    it("should reject invalid host and use undefined", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "invalid host with spaces";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: undefined,
+        port: 5037,
+      });
+    });
+
+    it("should reject empty host after trimming", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "   ";
+      process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
       await import("../src/adb/client");
