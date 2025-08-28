@@ -1,3 +1,5 @@
+import { EventEmitter } from "node:events";
+
 export enum TypeTag {
   LONG = "long",
   FLOAT = "float",
@@ -62,6 +64,6 @@ export interface Connection {
 }
 
 export interface PreferenceWatch {
-  stream: NodeJS.ReadableStream;
+  emitter: EventEmitter;
   close: () => void;
 }
