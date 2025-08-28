@@ -69,7 +69,7 @@ describe("ADB Client", () => {
       });
     });
 
-    it("should use NaN port when PREF_EDITOR_ADB_PORT is not a valid number", async () => {
+    it("should use default port when PREF_EDITOR_ADB_PORT is not a valid number", async () => {
       process.env.PREF_EDITOR_ADB_HOST = "test-host";
       process.env.PREF_EDITOR_ADB_PORT = "invalid";
 
@@ -78,7 +78,7 @@ describe("ADB Client", () => {
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",
-        port: NaN,
+        port: 5037,
       });
     });
 
@@ -92,6 +92,58 @@ describe("ADB Client", () => {
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",
         port: 5037,
+      });
+    });
+
+    it("should use default port when PREF_EDITOR_ADB_PORT is zero", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "test-host";
+      process.env.PREF_EDITOR_ADB_PORT = "0";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "test-host",
+        port: 5037,
+      });
+    });
+
+    it("should use default port when PREF_EDITOR_ADB_PORT is negative", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "test-host";
+      process.env.PREF_EDITOR_ADB_PORT = "-1";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "test-host",
+        port: 5037,
+      });
+    });
+
+    it("should use valid port when PREF_EDITOR_ADB_PORT is a valid positive number", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "test-host";
+      process.env.PREF_EDITOR_ADB_PORT = "8080";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "test-host",
+        port: 8080,
+      });
+    });
+
+    it("should handle edge case with very large port number", async () => {
+      process.env.PREF_EDITOR_ADB_HOST = "test-host";
+      process.env.PREF_EDITOR_ADB_PORT = "65535";
+
+      vi.resetModules();
+      await import("../src/adb/client");
+
+      expect(mockAdb.createClient).toHaveBeenCalledWith({
+        host: "test-host",
+        port: 65535,
       });
     });
   });

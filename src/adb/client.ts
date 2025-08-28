@@ -9,9 +9,7 @@ export interface AdbClient {
 class FarmClient implements AdbClient {
   client = Adb.createClient({
     host: process.env.PREF_EDITOR_ADB_HOST,
-    port: process.env.PREF_EDITOR_ADB_PORT
-      ? parseInt(process.env.PREF_EDITOR_ADB_PORT, 10)
-      : 5037,
+    port: this.parsePort(process.env.PREF_EDITOR_ADB_PORT),
   });
 
   async listDevices(): Promise<Devices> {
@@ -33,6 +31,13 @@ class FarmClient implements AdbClient {
     } catch (error) {
       return Promise.reject(error);
     }
+  }
+
+  private parsePort(portEnv: string | undefined): number {
+    if (!portEnv) return 5037;
+
+    const parsedPort = parseInt(portEnv, 10);
+    return !isNaN(parsedPort) && parsedPort > 0 ? parsedPort : 5037;
   }
 }
 
