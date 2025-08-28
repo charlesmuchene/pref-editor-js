@@ -1,4 +1,4 @@
-name: Pref Editor - Ready for Review
+name: Ready for Review
 
 on:
   pull_request:
