@@ -167,22 +167,18 @@ export const watchPreference = async (
   };
 
   async function* readPref() {
-    console.log("Starting in generator func");
-    for await (const start of setInterval(watchIntervalMs)) {
-      if (start !== undefined)
-        throw new Error("Unknown error in watch function");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for await (const _start of setInterval(watchIntervalMs)) {
+      if (shouldStopRead) break;
 
       const prefs = await readPreferences(connection);
-      if (!existing) throw new Error(`Preference not found: ${key.key}`);
+      const pref = prefs.find((p) => p.key === key.key);
 
-      const pref = prefs.find((p) => p.key === existing.key);
       if (!pref) throw new Error(`Preference not found: ${key.key}`);
 
-      if (pref.value !== existing.value) {
+      if (pref.value !== existing!.value) {
         yield pref.value;
         close();
-      }
-      if (shouldStopRead) {
         break;
       }
     }

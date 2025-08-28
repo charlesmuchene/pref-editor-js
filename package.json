@@ -5,14 +5,17 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "npm run lint && jest",
     "dev": "ts-node src/index.ts",
     "lint": "eslint src/ test/ --ext .ts",
     "build": "tsc && npm run copy-protos",
     "clean": "rimraf dist",
     "copy-protos": "mkdir -p dist/protos && find src/protos -type f \\( -name '*.js' -o -name '*.d.ts' \\) -exec cp {} dist/protos/ \\;",
     "compile-protos": "pbjs -t static-module -w commonjs -o src/protos/message.js src/protos/message.proto && pbts -o src/protos/message.d.ts src/protos/message.js",
-    "prepare": "npm run clean && npm run build"
+    "prepare": "npm run clean && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "verify": "npm run clean && npm run lint && npm run build && npm run test && npm run test:coverage"
   },
   "keywords": [
     "shared preferences",
@@ -30,17 +33,16 @@
     "@eslint/js": "^9.34.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.34.0",
-    "jest": "^30.0.3",
     "protobufjs-cli": "^1.2.0",
     "rimraf": "^6.0.1",
     "semantic-release": "^24.2.5",
-    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.41.0"
+    "typescript-eslint": "^8.41.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@devicefarmer/adbkit": "^3.3.8",
