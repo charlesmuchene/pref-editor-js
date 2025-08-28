@@ -102,7 +102,7 @@ export const readPreferences: (
 
 export const writeToDatastore = async (
   connection: Connection,
-  data: Uint8Array<ArrayBufferLike>
+  data: Uint8Array
 ) => {
   const file = createFile(connection.filename!);
   const path = filePath(file);
