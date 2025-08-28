@@ -15,8 +15,7 @@ import {
   fileTypeFromName,
 } from "../utils/utils";
 import { encodeKeyValuePreference } from "../utils/xml-utils";
-import { setInterval } from "node:timers/promises";
-import { Readable } from "node:stream";
+import { EventEmitter } from "node:events";
 
 export enum Op {
   ADD = "add",
@@ -138,16 +137,23 @@ const createMatcher = (preference: Preference): string => {
   return escape(`${result}.*$`);
 };
 
-const watchIntervalMs = process.env.PREF_EDITOR_WATCHER_INTERVAL_MS
-  ? Number(process.env.PREF_EDITOR_WATCHER_INTERVAL_MS)
-  : 3000;
-
 export const watchPreference = async (
   key: PreferenceKey,
   connection: Connection
 ): Promise<PreferenceWatch> => {
+  const watchIntervalMs = process.env.PREF_EDITOR_WATCHER_INTERVAL_MS
+    ? Number(process.env.PREF_EDITOR_WATCHER_INTERVAL_MS)
+    : 3000;
+
+  const maxIntervalMs = 3 * 60 * 1000; // 3 minutes in milliseconds
+
   if (isNaN(watchIntervalMs) || watchIntervalMs <= 0)
     throw new Error("PREF_EDITOR_WATCHER_INTERVAL_MS should be a number > 0");
+
+  if (watchIntervalMs > maxIntervalMs)
+    throw new Error(
+      "PREF_EDITOR_WATCHER_INTERVAL_MS should not exceed 3 minutes (180000ms)"
+    );
 
   if (connection.filename)
     connection = Object.assign(connection, {
@@ -159,32 +165,42 @@ export const watchPreference = async (
   );
   if (!existing) throw new Error(`Preference not found: ${key.key}`);
 
-  let shouldStopRead = false;
+  const emitter = new EventEmitter();
+  let intervalId: NodeJS.Timeout | null = null;
+  let currentValue = existing.value;
 
-  const close = () => {
-    shouldStopRead = true;
-    stream.destroy();
+  const startWatching = () => {
+    intervalId = setInterval(async () => {
+      try {
+        const prefs = await readPreferences(connection);
+        const pref = prefs.find((p) => p.key === key.key);
+
+        if (!pref) {
+          emitter.emit("error", new Error(`Preference not found: ${key.key}`));
+          return;
+        }
+
+        if (pref.value !== currentValue) {
+          currentValue = pref.value;
+          emitter.emit("change", pref.value, pref);
+        }
+      } catch (error) {
+        emitter.emit("error", error);
+      }
+    }, watchIntervalMs);
   };
 
-  async function* readPref() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for await (const _start of setInterval(watchIntervalMs)) {
-      if (shouldStopRead) break;
-
-      const prefs = await readPreferences(connection);
-      const pref = prefs.find((p) => p.key === key.key);
-
-      if (!pref) throw new Error(`Preference not found: ${key.key}`);
-
-      if (pref.value !== existing!.value) {
-        yield pref.value;
-        close();
-        break;
-      }
+  const close = () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
     }
-  }
+    emitter.emit("close");
+    emitter.removeAllListeners();
+  };
 
-  const stream = Readable.from(readPref());
+  // Start watching immediately
+  startWatching();
 
-  return { stream, close };
+  return { emitter, close };
 };

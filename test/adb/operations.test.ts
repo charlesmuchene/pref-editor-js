@@ -7,7 +7,6 @@ import {
   type Mock,
   beforeEach,
 } from "vitest";
-import { Readable } from "node:stream";
 import {
   Connection,
   PartialPreference,
@@ -328,9 +327,13 @@ describe("watchPreference", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.PREF_EDITOR_WATCHER_INTERVAL_MS;
+    vi.useFakeTimers();
   });
 
-  afterEach(() => vi.clearAllMocks());
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.useRealTimers();
+  });
 
   it("should fail when preference key is not found", async () => {
     const key: PreferenceKey = { key: "nonexistent.key" };
@@ -359,7 +362,7 @@ describe("watchPreference", () => {
 
     const watch = await watchPreference(key, connection);
 
-    expect(watch).toHaveProperty("stream");
+    expect(watch).toHaveProperty("emitter");
     expect(watch).toHaveProperty("close");
     expect(typeof watch.close).toBe("function");
 
@@ -383,23 +386,15 @@ describe("watchPreference", () => {
 
     const watch = await watchPreference(key, connection);
 
-    expect(watch).toHaveProperty("stream");
+    expect(watch).toHaveProperty("emitter");
     expect(watch).toHaveProperty("close");
 
     // Clean up
     watch.close();
   });
 
-  it("should fail when PREF_EDITOR_WATCHER_INTERVAL_MS is invalid", async () => {
-    // Test line 142: invalid interval (NaN)
-    // We need to reload the module to test this since watchIntervalMs is calculated at load time
+  it("should fail when PREF_EDITOR_WATCHER_INTERVAL_MS is invalid (NaN)", async () => {
     process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "invalid";
-
-    // Clear the module cache and reimport to test the validation
-    vi.resetModules();
-    const { watchPreference: watchPrefReloaded } = await import(
-      "../../src/adb/operations"
-    );
 
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
@@ -408,20 +403,13 @@ describe("watchPreference", () => {
       filename: "legacy-prefs.xml",
     };
 
-    await expect(watchPrefReloaded(key, connection)).rejects.toThrow(
+    await expect(watchPreference(key, connection)).rejects.toThrow(
       "PREF_EDITOR_WATCHER_INTERVAL_MS should be a number > 0"
     );
   });
 
   it("should fail when PREF_EDITOR_WATCHER_INTERVAL_MS is zero or negative", async () => {
-    // Test line 142: invalid interval (<= 0)
     process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "0";
-
-    // Clear the module cache and reimport to test the validation
-    vi.resetModules();
-    const { watchPreference: watchPrefReloaded } = await import(
-      "../../src/adb/operations"
-    );
 
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
@@ -430,13 +418,14 @@ describe("watchPreference", () => {
       filename: "legacy-prefs.xml",
     };
 
-    await expect(watchPrefReloaded(key, connection)).rejects.toThrow(
+    await expect(watchPreference(key, connection)).rejects.toThrow(
       "PREF_EDITOR_WATCHER_INTERVAL_MS should be a number > 0"
     );
   });
 
-  it("should handle generator function execution", async () => {
-    // Test basic generator function execution
+  it("should fail when PREF_EDITOR_WATCHER_INTERVAL_MS exceeds 3 minutes", async () => {
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "200000"; // > 3 minutes
+
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
       deviceId: "emulator-5554",
@@ -444,43 +433,12 @@ describe("watchPreference", () => {
       filename: "legacy-prefs.xml",
     };
 
-    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
-
-    const watch = await watchPreference(key, connection);
-
-    // Verify the watch object has the expected properties
-    expect(watch).toHaveProperty("stream");
-    expect(watch).toHaveProperty("close");
-    expect(typeof watch.close).toBe("function");
-
-    // Clean up
-    watch.close();
+    await expect(watchPreference(key, connection)).rejects.toThrow(
+      "PREF_EDITOR_WATCHER_INTERVAL_MS should not exceed 3 minutes (180000ms)"
+    );
   });
 
-  it("should cover generator function basic execution", async () => {
-    // Test lines 172-188: basic generator function execution
-    const key: PreferenceKey = { key: "boolean.key" };
-    const connection: Connection = {
-      deviceId: "emulator-5554",
-      appId: "com.charlesmuchene.datastore",
-      filename: "legacy-prefs.xml",
-    };
-
-    // Set a very short interval for testing
-    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "10";
-
-    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
-
-    const watch = await watchPreference(key, connection);
-
-    // Just let the generator run briefly to cover the lines
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // Clean up
-    watch.close();
-  });
-
-  it("should handle shouldStopRead break condition", async () => {
+  it("should emit change event when preference value changes", async () => {
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
       deviceId: "emulator-5554",
@@ -490,18 +448,35 @@ describe("watchPreference", () => {
 
     process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "100";
 
-    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+    const updatedPrefs = `
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="boolean.key" value="false" />
+    <string name="string.key">fourteen</string>
+    <long name="long.key" value="1234" />
+</map>`;
+
+    mock
+      .mockImplementationOnce(() => Buffer.from(keyValuePrefs)) // Initial read
+      .mockImplementation(() => Buffer.from(updatedPrefs)); // Changed value
 
     const watch = await watchPreference(key, connection);
 
-    // Close immediately to test shouldStopRead condition
-    watch.close();
+    return new Promise<void>((resolve) => {
+      watch.emitter.on("change", (newValue, preference) => {
+        expect(newValue).toBe("false");
+        expect(preference.key).toBe("boolean.key");
+        expect(preference.value).toBe("false");
+        watch.close();
+        resolve();
+      });
 
-    // The stream should be destroyed/closed
-    expect(watch.stream.destroyed).toBe(true);
+      // Advance timers to trigger the interval
+      vi.advanceTimersByTime(100);
+    });
   });
 
-  it("should create readable stream from readPref generator", async () => {
+  it("should emit error event when preference is not found during polling", async () => {
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
       deviceId: "emulator-5554",
@@ -511,55 +486,6 @@ describe("watchPreference", () => {
 
     process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "100";
 
-    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
-
-    const watch = await watchPreference(key, connection);
-
-    // Verify the stream is created and has expected properties
-    expect(watch.stream).toBeDefined();
-    expect(watch.stream.readable).toBe(true);
-    expect(typeof watch.close).toBe("function");
-
-    // Clean up
-    watch.close();
-    expect(watch.stream.destroyed).toBe(true);
-  });
-
-  it("should cover readPref generator function paths", async () => {
-    const key: PreferenceKey = { key: "boolean.key" };
-    const connection: Connection = {
-      deviceId: "emulator-5554",
-      appId: "com.charlesmuchene.datastore",
-      filename: "legacy-prefs.xml",
-    };
-
-    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "50";
-
-    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
-
-    const watch = await watchPreference(key, connection);
-
-    // Test that the generator function is accessible through the stream
-    expect(watch.stream).toBeInstanceOf(Readable);
-
-    // Test early termination
-    watch.close();
-
-    // Verify stream is properly closed
-    expect(watch.stream.destroyed).toBe(true);
-  });
-
-  it("should handle readPref error conditions", async () => {
-    const key: PreferenceKey = { key: "nonexistent.key" };
-    const connection: Connection = {
-      deviceId: "emulator-5554",
-      appId: "com.charlesmuchene.datastore",
-      filename: "legacy-prefs.xml",
-    };
-
-    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "50";
-
-    // Mock to return preferences without the requested key
     const prefsWithoutKey = `
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <map>
@@ -568,16 +494,24 @@ describe("watchPreference", () => {
 </map>`;
 
     mock
-      .mockImplementationOnce(() => Buffer.from(keyValuePrefs)) // Initial read (has the key)
+      .mockImplementationOnce(() => Buffer.from(keyValuePrefs)) // Initial read (has key)
       .mockImplementation(() => Buffer.from(prefsWithoutKey)); // Subsequent reads (missing key)
 
-    // This should fail during initial setup since the key doesn't exist
-    await expect(watchPreference(key, connection)).rejects.toThrow(
-      "Preference not found: nonexistent.key"
-    );
+    const watch = await watchPreference(key, connection);
+
+    return new Promise<void>((resolve) => {
+      watch.emitter.on("error", (error) => {
+        expect(error.message).toBe("Preference not found: boolean.key");
+        watch.close();
+        resolve();
+      });
+
+      // Advance timers to trigger the interval
+      vi.advanceTimersByTime(100);
+    });
   });
 
-  it("should stop polling when shouldStopRead is true", async () => {
+  it("should emit error event when readPreferences throws", async () => {
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
       deviceId: "emulator-5554",
@@ -585,46 +519,78 @@ describe("watchPreference", () => {
       filename: "legacy-prefs.xml",
     };
 
-    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "25";
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "100";
 
-    let callCount = 0;
-    mock.mockImplementation(() => {
-      callCount++;
-      return Buffer.from(keyValuePrefs);
-    });
+    mock
+      .mockImplementationOnce(() => Buffer.from(keyValuePrefs)) // Initial read
+      .mockImplementation(() => {
+        throw new Error("Connection failed");
+      });
 
     const watch = await watchPreference(key, connection);
 
-    // Let it poll a few times, then close
-    setTimeout(() => {
-      watch.close();
-    }, 100);
-
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        const finalCallCount = callCount;
-        // Wait a bit more to ensure polling has stopped
-        setTimeout(() => {
-          expect(callCount).toBe(finalCallCount); // Should not increase after close
-          resolve(undefined);
-        }, 100);
-      }, 200);
-
-      watch.stream.on("data", () => {
-        clearTimeout(timeout);
+    return new Promise<void>((resolve) => {
+      watch.emitter.on("error", (error) => {
+        expect(error.message).toBe("Connection failed");
         watch.close();
-        resolve(undefined);
+        resolve();
       });
 
-      watch.stream.on("error", () => {
-        clearTimeout(timeout);
-        watch.close();
-        resolve(undefined);
-      });
+      // Advance timers to trigger the interval
+      vi.advanceTimersByTime(100);
     });
   });
 
-  it("should handle datastore preferences in readPref", async () => {
+  it("should emit close event when watch is closed", async () => {
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+
+    const watch = await watchPreference(key, connection);
+
+    return new Promise<void>((resolve) => {
+      watch.emitter.on("close", () => {
+        resolve();
+      });
+
+      watch.close();
+    });
+  });
+
+  it("should clear interval and remove listeners when closed", async () => {
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+
+    const watch = await watchPreference(key, connection);
+
+    // Add some listeners
+    const changeListener = vi.fn();
+    const errorListener = vi.fn();
+    watch.emitter.on("change", changeListener);
+    watch.emitter.on("error", errorListener);
+
+    expect(watch.emitter.listenerCount("change")).toBe(1);
+    expect(watch.emitter.listenerCount("error")).toBe(1);
+
+    watch.close();
+
+    // Listeners should be removed
+    expect(watch.emitter.listenerCount("change")).toBe(0);
+    expect(watch.emitter.listenerCount("error")).toBe(0);
+  });
+
+  it("should handle datastore preferences", async () => {
     const key: PreferenceKey = { key: "average" };
     const connection: Connection = {
       deviceId: "emulator-5554",
@@ -641,19 +607,14 @@ describe("watchPreference", () => {
 
     const watch = await watchPreference(key, connection);
 
-    // Verify the watch was created successfully for datastore preferences
-    expect(watch.stream).toBeDefined();
-    expect(watch.stream.readable).toBe(true);
-    expect(typeof watch.close).toBe("function");
+    expect(watch).toHaveProperty("emitter");
+    expect(watch).toHaveProperty("close");
 
     // Clean up
     watch.close();
-    expect(watch.stream.destroyed).toBe(true);
   });
 
-  it("should cover readPref generator internal logic", async () => {
-    // This test focuses on covering the generator function lines
-    // by creating a scenario where the generator will execute at least one iteration
+  it("should not emit change event when value remains the same", async () => {
     const key: PreferenceKey = { key: "boolean.key" };
     const connection: Connection = {
       deviceId: "emulator-5554",
@@ -661,19 +622,61 @@ describe("watchPreference", () => {
       filename: "legacy-prefs.xml",
     };
 
-    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "1"; // Minimal interval
+    process.env.PREF_EDITOR_WATCHER_INTERVAL_MS = "50";
 
     mock.mockImplementation(() => Buffer.from(keyValuePrefs));
 
     const watch = await watchPreference(key, connection);
 
-    // Give the generator a brief moment to start and execute at least one iteration
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    const changeListener = vi.fn();
+    watch.emitter.on("change", changeListener);
 
-    // Close the watch to trigger the shouldStopRead condition
+    // Advance timers multiple times
+    vi.advanceTimersByTime(200);
+
+    // Should not have emitted any change events since value didn't change
+    expect(changeListener).not.toHaveBeenCalled();
+
+    watch.close();
+  });
+
+  it("should handle multiple close calls gracefully", async () => {
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+
+    const watch = await watchPreference(key, connection);
+
+    // Call close multiple times - should not throw
+    watch.close();
+    watch.close();
     watch.close();
 
-    // Verify the stream was properly closed
-    expect(watch.stream.destroyed).toBe(true);
+    // Should still work without errors
+    expect(watch.emitter.listenerCount("change")).toBe(0);
+  });
+
+  it("should use default interval when env var is not set", async () => {
+    // Don't set PREF_EDITOR_WATCHER_INTERVAL_MS
+    const key: PreferenceKey = { key: "boolean.key" };
+    const connection: Connection = {
+      deviceId: "emulator-5554",
+      appId: "com.charlesmuchene.datastore",
+      filename: "legacy-prefs.xml",
+    };
+
+    mock.mockImplementation(() => Buffer.from(keyValuePrefs));
+
+    const watch = await watchPreference(key, connection);
+
+    expect(watch).toHaveProperty("emitter");
+    expect(watch).toHaveProperty("close");
+
+    watch.close();
   });
 });
