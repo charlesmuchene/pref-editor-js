@@ -6,6 +6,7 @@ import {
   readPreferences,
   writeToDatastore,
   writeToKeyValue,
+  freeShell,
 } from "../src/adb/bridge";
 import { Op } from "../src/adb/operations";
 import client from "../src/adb/client";
@@ -274,5 +275,191 @@ describe("Bridge shell", () => {
       connection.deviceId,
       `run-as ${connection.appId} cat shared_prefs/settings.xml`
     );
+  });
+});
+
+describe("freeShell", () => {
+  const mock = client.shell as Mock;
+
+  afterEach(() => vi.clearAllMocks());
+
+  it("should execute shell command and return trimmed string output", async () => {
+    const output = "  some command output  \n";
+    mock.mockImplementation(() => Promise.resolve(output));
+
+    const result = await freeShell("12345", "test command");
+
+    expect(result).toBe("some command output");
+    expect(mock).toHaveBeenCalledWith("12345", "test command");
+  });
+
+  it("should handle empty output", async () => {
+    mock.mockImplementation(() => Promise.resolve(""));
+
+    const result = await freeShell("12345", "test command");
+
+    expect(result).toBe("");
+  });
+});
+
+describe("writeToKeyValue operations", () => {
+  const mock = client.shell as Mock;
+
+  afterEach(() => vi.clearAllMocks());
+
+  it("should handle ADD operation", async () => {
+    const connection = {
+      deviceId: "12345",
+      appId: "app.id",
+      filename: "prefs.xml",
+    };
+    const matcher = "</map>";
+    const content = '<string name="new_key">new_value</string>';
+
+    await writeToKeyValue(connection, Op.ADD, matcher, content);
+
+    expect(mock).toHaveBeenCalledWith(
+      connection.deviceId,
+      `run-as ${connection.appId} sed -Ei -e '/${matcher}/i${content}' shared_prefs/${connection.filename}`
+    );
+  });
+
+  it("should handle DELETE operation", async () => {
+    const connection = {
+      deviceId: "12345",
+      appId: "app.id",
+      filename: "prefs.xml",
+    };
+    const matcher = '<boolean name="to_delete" value="true" />';
+
+    await writeToKeyValue(connection, Op.DELETE, matcher);
+
+    expect(mock).toHaveBeenCalledWith(
+      connection.deviceId,
+      `run-as ${connection.appId} sed -Ei -e '/${matcher}/d' shared_prefs/${connection.filename}`
+    );
+  });
+
+  it("should throw error for unknown operation", async () => {
+    const connection = {
+      deviceId: "12345",
+      appId: "app.id",
+      filename: "prefs.xml",
+    };
+
+    await expect(
+      writeToKeyValue(connection, "UNKNOWN" as Op, "matcher")
+    ).rejects.toThrow("Unknown operation: UNKNOWN");
+  });
+});
+
+describe("readPreferences edge cases", () => {
+  const mock = client.shell as Mock;
+
+  afterEach(() => vi.clearAllMocks());
+
+  it("should handle key-value preferences correctly", async () => {
+    const connection = {
+      deviceId: "12345",
+      appId: "app.id",
+      filename: "settings.xml",
+    };
+
+    mock.mockImplementation(() =>
+      Promise.resolve(Buffer.from(keyValuePrefs, "utf-8"))
+    );
+
+    const preferences = await readPreferences(connection);
+
+    expect(preferences).toBeDefined();
+    expect(Array.isArray(preferences)).toBe(true);
+  });
+
+  it("should handle datastore preferences correctly", async () => {
+    const connection = {
+      deviceId: "12345",
+      appId: "app.id",
+      filename: "settings.preferences_pb",
+    };
+
+    mock.mockImplementation(() =>
+      Promise.resolve(Buffer.from(encodedProtobufPrefs, "base64"))
+    );
+
+    const preferences = await readPreferences(connection);
+
+    expect(preferences).toBeDefined();
+    expect(Array.isArray(preferences)).toBe(true);
+  });
+});
+
+describe("listFiles edge cases", () => {
+  const mock = client.shell as Mock;
+
+  afterEach(() => vi.clearAllMocks());
+
+  it("should handle empty file lists", async () => {
+    mock
+      .mockImplementationOnce(() => Promise.resolve(""))
+      .mockImplementationOnce(() => Promise.resolve(""));
+
+    const files = await listFiles({ deviceId: "12345", appId: "app.id" });
+
+    expect(files).toEqual([]);
+  });
+
+  it("should handle mixed empty and non-empty file lists", async () => {
+    mock
+      .mockImplementationOnce(() => Promise.resolve(""))
+      .mockImplementationOnce(() =>
+        Promise.resolve("settings.preferences_pb\n")
+      );
+
+    const files = await listFiles({ deviceId: "12345", appId: "app.id" });
+
+    expect(files).toEqual([
+      { name: "settings.preferences_pb", type: FileType.DATA_STORE },
+    ]);
+  });
+
+  it("should filter out empty lines from file listings", async () => {
+    mock
+      .mockImplementationOnce(() =>
+        Promise.resolve("prefs.xml\n\n\nother.xml\n")
+      )
+      .mockImplementationOnce(() => Promise.resolve(""));
+
+    const files = await listFiles({ deviceId: "12345", appId: "app.id" });
+
+    expect(files).toEqual([
+      { name: "prefs.xml", type: FileType.KEY_VALUE },
+      { name: "other.xml", type: FileType.KEY_VALUE },
+    ]);
+  });
+});
+
+describe("listApps edge cases", () => {
+  const mock = client.shell as Mock;
+
+  afterEach(() => vi.clearAllMocks());
+
+  it("should handle empty app list", async () => {
+    mock.mockImplementation(() => Promise.resolve(""));
+
+    const apps = await listApps({ deviceId: "12345" });
+
+    expect(apps).toEqual([{ packageName: "" }]);
+  });
+
+  it("should trim whitespace from package names", async () => {
+    const output = "  com.example.app1  \n  com.example.app2  \n";
+    mock.mockImplementation(() => Promise.resolve(output));
+
+    const apps = await listApps({ deviceId: "12345" });
+
+    expect(apps).toEqual([
+      { packageName: "com.example.app1" },
+      { packageName: "com.example.app2" },
+    ]);
   });
 });
