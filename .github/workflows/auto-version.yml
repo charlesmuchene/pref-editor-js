@@ -7,7 +7,7 @@ on:
 
 jobs:
   auto-version:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'RELEASE')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,7 +26,7 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --local user.email "6451102+charlesmuchene@users.noreply.github.com"
+          git config --local user.email "actions@github.com"
           git config --local user.name "Pref Editor bot"
 
       - name: Install dependencies
@@ -37,27 +37,31 @@ jobs:
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
           echo "PR Title: $PR_TITLE"
+          echo "PR has RELEASE label - determining version bump type"
 
-          if [[ "$PR_TITLE" =~ ^BREAKING: ]] || [[ "$PR_TITLE" =~ ^breaking: ]]; then
+          # Check for additional labels to determine version type
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+          echo "PR Labels: $LABELS"
+
+          if [[ "$LABELS" =~ major ]] || [[ "$PR_TITLE" =~ ^BREAKING: ]] || [[ "$PR_TITLE" =~ ^breaking: ]]; then
             echo "VERSION_TYPE=major" >> $GITHUB_OUTPUT
-            echo "Detected: MAJOR version bump (BREAKING: -> major)"
-          elif [[ "$PR_TITLE" =~ ^feat: ]] || [[ "$PR_TITLE" =~ ^FEAT: ]]; then
+            echo "Detected: MAJOR version bump"
+          elif [[ "$LABELS" =~ minor ]] || [[ "$PR_TITLE" =~ ^feat: ]] || [[ "$PR_TITLE" =~ ^FEAT: ]]; then
             echo "VERSION_TYPE=minor" >> $GITHUB_OUTPUT
-            echo "Detected: MINOR version bump (feat: -> minor)"
-          elif [[ "$PR_TITLE" =~ ^fix: ]] || [[ "$PR_TITLE" =~ ^FIX: ]]; then
+            echo "Detected: MINOR version bump"
+          elif [[ "$LABELS" =~ patch ]] || [[ "$PR_TITLE" =~ ^fix: ]] || [[ "$PR_TITLE" =~ ^FIX: ]]; then
             echo "VERSION_TYPE=patch" >> $GITHUB_OUTPUT
-            echo "Detected: PATCH version bump (fix: -> patch)"
+            echo "Detected: PATCH version bump"
           else
-            echo "VERSION_TYPE=none" >> $GITHUB_OUTPUT
-            echo "No version bump detected - PR title must start with 'BREAKING:', 'feat:', or 'fix:' (case-insensitive)"
+            # Default to patch if no specific version type is detected
+            echo "VERSION_TYPE=patch" >> $GITHUB_OUTPUT
+            echo "Defaulting to PATCH version bump"
           fi
 
       - name: Run verification
-        if: steps.version-type.outputs.VERSION_TYPE != 'none'
         run: npm run verify
 
       - name: Bump version
-        if: steps.version-type.outputs.VERSION_TYPE != 'none'
         run: |
           npm version ${{ steps.version-type.outputs.VERSION_TYPE }} --no-git-tag-version
           NEW_VERSION=$(node -p "require('./package.json').version")
@@ -65,21 +69,18 @@ jobs:
           echo "Bumped to version: v$NEW_VERSION"
 
       - name: Commit version bump
-        if: steps.version-type.outputs.VERSION_TYPE != 'none'
         run: |
           git add package.json package-lock.json
           git commit -m "release: bump version to ${{ env.NEW_VERSION }}"
           git push origin main
 
       - name: Create and push tag
-        if: steps.version-type.outputs.VERSION_TYPE != 'none'
         run: |
           git tag ${{ env.NEW_VERSION }}
           git push origin ${{ env.NEW_VERSION }}
           echo "Created and pushed tag: ${{ env.NEW_VERSION }}"
 
       - name: Summary
-        if: steps.version-type.outputs.VERSION_TYPE != 'none'
         run: |
           echo "✅ Successfully created ${{ steps.version-type.outputs.VERSION_TYPE }} release: ${{ env.NEW_VERSION }}"
           echo "🚀 Release workflow will be triggered automatically"
