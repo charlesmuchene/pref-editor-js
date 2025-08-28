@@ -1,4 +1,4 @@
-name: Pref Editor - First-time Contributor Welcome
+name: First-time Contributor Welcome
 
 on:
   pull_request_target:

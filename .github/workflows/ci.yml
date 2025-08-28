@@ -1,4 +1,4 @@
-name: Pref Editor - CI
+name: CI
 
 on:
   push:

@@ -1,5 +1,5 @@
 ---
-name: 🚀 Pref Editor - First-time Contributor
+name: 🚀 First-time Contributor
 about: Getting started with your first contribution to Pref Editor
 title: "[FIRST-TIME] "
 labels: "good first issue, help wanted"
