@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, type Mock } from "vitest";
-import { Connection, FileType } from "../src";
-import client from "../src/adb/client";
+import { Connection, FileType } from "../../src";
+import client from "../../src/adb/client";
 import {
   assertType,
   filenameWithExtension,
@@ -8,9 +8,9 @@ import {
   createFile,
   filePath,
   validUrl,
-} from "./../src/utils/utils";
+} from "../../src/utils/utils";
 
-vi.mock("../src/adb/client");
+vi.mock("../../src/adb/client");
 
 describe("Utils", () => {
   it("should determine datastore filename with extension", async () => {
@@ -160,7 +160,7 @@ describe("Utils", () => {
     // Test lines 28-29: Unknown file type error in filePath function
     const invalidFile = {
       name: "test.txt",
-      type: "invalid_type" as any, // Force invalid type to test error path
+      type: "invalid_type" as FileType, // Force invalid type to test error path
     };
 
     expect(() => filePath(invalidFile)).toThrow("Unknown file type");

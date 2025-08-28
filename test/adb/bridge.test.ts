@@ -7,12 +7,12 @@ import {
   writeToDatastore,
   writeToKeyValue,
   freeShell,
-} from "../src/adb/bridge";
-import { Op } from "../src/adb/operations";
-import client from "../src/adb/client";
-import { FileType } from "../src";
+} from "../../src/adb/bridge";
+import { Op } from "../../src/adb/operations";
+import client from "../../src/adb/client";
+import { FileType } from "../../src";
 
-vi.mock("../src/adb/client");
+vi.mock("../../src/adb/client");
 
 const encodedProtobufPrefs =
   "Cg8KCWlzVmlzaXRlZBICCAAKEAoKc29tZS1jb3VudBICGA4KFQoJdGVtcC1uYW1lEggqBmNoYXJsbwoUCgdhdmVyYWdlEgk5mpmZmZmZFUA=";

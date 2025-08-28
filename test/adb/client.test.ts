@@ -30,7 +30,7 @@ describe("ADB Client", () => {
     mockAdb.util.readAll.mockResolvedValue(Buffer.from("test output"));
 
     // Import client after mocks are set up
-    const clientModule = await import("../src/adb/client");
+    const clientModule = await import("../../src/adb/client");
     client = clientModule.default;
   });
 
@@ -47,7 +47,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: undefined,
@@ -60,7 +60,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "127.0.0.1",
@@ -74,7 +74,7 @@ describe("ADB Client", () => {
       delete process.env.PREF_EDITOR_ADB_PORT;
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: undefined,
@@ -87,7 +87,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "192.168.1.100",
@@ -100,7 +100,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "localhost",
@@ -113,7 +113,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "adb.example.com",
@@ -126,7 +126,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "localhost",
@@ -139,7 +139,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: undefined,
@@ -152,7 +152,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "5037";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: undefined,
@@ -165,7 +165,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "9999";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "custom-host",
@@ -178,7 +178,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "invalid";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",
@@ -191,7 +191,7 @@ describe("ADB Client", () => {
       delete process.env.PREF_EDITOR_ADB_PORT;
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",
@@ -204,7 +204,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "0";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",
@@ -217,7 +217,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "-1";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",
@@ -230,7 +230,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "8080";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",
@@ -243,7 +243,7 @@ describe("ADB Client", () => {
       process.env.PREF_EDITOR_ADB_PORT = "65535";
 
       vi.resetModules();
-      await import("../src/adb/client");
+      await import("../../src/adb/client");
 
       expect(mockAdb.createClient).toHaveBeenCalledWith({
         host: "test-host",

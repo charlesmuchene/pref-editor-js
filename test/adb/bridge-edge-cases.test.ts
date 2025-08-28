@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, type Mock } from "vitest";
-import { readPreferences } from "../src/adb/bridge";
-import client from "../src/adb/client";
+import { readPreferences } from "../../src/adb/bridge";
+import client from "../../src/adb/client";
+import { FileType } from "../../src/types/type";
 
 // Mock the client
-vi.mock("../src/adb/client");
+vi.mock("../../src/adb/client");
 
 // Mock the utils module to control file type behavior
-vi.mock("../src/utils/utils", () => ({
+vi.mock("../../src/utils/utils", () => ({
   filenameWithExtension: vi.fn(),
   createFile: vi.fn(),
   filePath: vi.fn(),
@@ -17,14 +18,14 @@ describe("Bridge edge cases - Unknown file type", () => {
 
   it("should throw error for unknown file type", async () => {
     const { createFile, filenameWithExtension, filePath } = await import(
-      "../src/utils/utils"
+      "../../src/utils/utils"
     );
 
     // Mock the utility functions to return an unknown file type
     vi.mocked(filenameWithExtension).mockResolvedValue("unknown.txt");
     vi.mocked(createFile).mockReturnValue({
       name: "unknown.txt",
-      type: "unknown" as any,
+      type: "unknown" as FileType,
     });
     vi.mocked(filePath).mockReturnValue("unknown/unknown.txt");
 

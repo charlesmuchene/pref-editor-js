@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   decodeDatastorePrefs,
   encodeDatastorePrefs,
-} from "../src/utils/proto-utils";
-import { TypeTag, Preferences } from "../src/types/type";
-import { PreferenceMap, Value, StringSet } from "../src/protos/message";
+} from "../../src/utils/proto-utils";
+import { TypeTag, Preferences } from "../../src/types/type";
+import { PreferenceMap, Value, StringSet } from "../../src/protos/message";
 
 describe("Proto Utils", () => {
   it("should decode datastore preferences with STRINGSET type", () => {

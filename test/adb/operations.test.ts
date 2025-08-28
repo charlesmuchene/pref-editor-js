@@ -13,17 +13,16 @@ import {
   PreferenceKey,
   Preference,
   TypeTag,
-  FileType,
-} from "../src/types/type";
+} from "../../src/types/type";
 import {
   changePreference,
   deletePreference,
   addPreference,
   watchPreference,
-} from "./../src/adb/operations";
-import client from "../src/adb/client";
+} from "../../src/adb/operations";
+import client from "../../src/adb/client";
 
-vi.mock("../src/adb/client");
+vi.mock("../../src/adb/client");
 
 const keyValuePrefs = `
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
@@ -315,8 +314,8 @@ describe("addPreference", () => {
     expect(mock).toHaveBeenNthCalledWith(
       4,
       connection.deviceId,
-      expect.stringMatching(
-        /run-as com\.charlesmuchene\.datastore sed -Ei -e '\/\<\\\/map\>\/i<string name="new\.key">test<\\\/string>' shared_prefs\/legacy-prefs\.xml/
+      expect.stringContaining(
+        `run-as com.charlesmuchene.datastore sed -Ei -e '/<\\/map>/i<string name="new.key">test<\\/string>' shared_prefs/legacy-prefs.xml`
       )
     );
   });
@@ -398,7 +397,7 @@ describe("watchPreference", () => {
     // Clear the module cache and reimport to test the validation
     vi.resetModules();
     const { watchPreference: watchPrefReloaded } = await import(
-      "../src/adb/operations"
+      "../../src/adb/operations"
     );
 
     const key: PreferenceKey = { key: "boolean.key" };
@@ -420,7 +419,7 @@ describe("watchPreference", () => {
     // Clear the module cache and reimport to test the validation
     vi.resetModules();
     const { watchPreference: watchPrefReloaded } = await import(
-      "../src/adb/operations"
+      "../../src/adb/operations"
     );
 
     const key: PreferenceKey = { key: "boolean.key" };

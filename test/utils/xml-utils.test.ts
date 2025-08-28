@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   parseKeyValue,
   encodeKeyValuePreference,
-} from "../src/utils/xml-utils";
-import { TypeTag, Preference } from "../src/types/type";
+} from "../../src/utils/xml-utils";
+import { TypeTag, Preference } from "../../src/types/type";
 
 describe("XML Utils", () => {
   it("should parse key-value preferences with string type", () => {
