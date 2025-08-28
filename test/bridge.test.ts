@@ -1,3 +1,4 @@
+import { describe, it, expect, afterEach, vi, type Mock } from "vitest";
 import {
   listDevices,
   listApps,
@@ -10,7 +11,7 @@ import { Op } from "../src/adb/operations";
 import client from "../src/adb/client";
 import { FileType } from "../src";
 
-jest.mock("../src/adb/client");
+vi.mock("../src/adb/client");
 
 const encodedProtobufPrefs =
   "Cg8KCWlzVmlzaXRlZBICCAAKEAoKc29tZS1jb3VudBICGA4KFQoJdGVtcC1uYW1lEggqBmNoYXJsbwoUCgdhdmVyYWdlEgk5mpmZmZmZFUA=";
@@ -23,14 +24,14 @@ const keyValuePrefs = `
 </map>`;
 
 describe("Bridge", () => {
-  const mock = client.shell as jest.Mock;
+  const mock = client.shell as Mock;
 
-  afterEach(() => jest.clearAllMocks);
+  afterEach(() => vi.clearAllMocks());
 
   it("should list devices", async () => {
     const dev = [{ serial: "12345", state: "device" }];
 
-    const mock = client.listDevices as jest.Mock;
+    const mock = client.listDevices as Mock;
     mock.mockImplementation(() => Promise.resolve(dev));
 
     const devices = await listDevices();
@@ -84,9 +85,9 @@ describe("Bridge", () => {
 });
 
 describe("Malformed input", () => {
-  const mock = client.shell as jest.Mock;
+  const mock = client.shell as Mock;
 
-  afterEach(() => jest.clearAllMocks);
+  afterEach(() => vi.clearAllMocks());
 
   it("should fail for invalid app id", async () => {
     mock.mockImplementation(() =>
@@ -166,9 +167,9 @@ describe("Malformed input", () => {
 });
 
 describe("Bridge shell", () => {
-  const mock = client.shell as jest.Mock;
+  const mock = client.shell as Mock;
 
-  afterEach(() => jest.clearAllMocks);
+  afterEach(() => vi.clearAllMocks());
 
   it("should invoke command to write datastore preferences", async () => {
     const buffer = Buffer.from(encodedProtobufPrefs, "base64");

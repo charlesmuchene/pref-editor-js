@@ -1,12 +1,13 @@
+import { describe, it, expect, vi, type Mock } from "vitest";
 import { Connection } from "../src";
 import client from "../src/adb/client";
 import { assertType, filenameWithExtension } from "./../src/utils/utils";
 
-jest.mock("../src/adb/client");
+vi.mock("../src/adb/client");
 
 describe("Utils", () => {
   it("should determine datastore filename with extension", async () => {
-    const mock = client.shell as jest.Mock;
+    const mock = client.shell as Mock;
     mock
       .mockImplementationOnce(() =>
         Promise.resolve("legacy-prefs.xml\napp.xml\n")
@@ -25,7 +26,7 @@ describe("Utils", () => {
   });
 
   it("should determine key-value filename with extension", async () => {
-    const mock = client.shell as jest.Mock;
+    const mock = client.shell as Mock;
     mock
       .mockImplementationOnce(() =>
         Promise.resolve("legacy-prefs.xml\napp.xml\n")
@@ -49,7 +50,7 @@ describe("Utils", () => {
       appId: "com.app.id",
       filename: "settings",
     };
-    const mock = client.shell as jest.Mock;
+    const mock = client.shell as Mock;
     mock
       .mockImplementationOnce(() =>
         Promise.resolve("legacy-prefs.xml\nsettings.xml\n")
@@ -69,7 +70,7 @@ describe("Utils", () => {
       appId: "com.app.id",
       filename: "app",
     };
-    const mock = client.shell as jest.Mock;
+    const mock = client.shell as Mock;
     mock
       .mockImplementationOnce(() =>
         Promise.resolve("legacy-prefs.xml\nsettings.xml\n")

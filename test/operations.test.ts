@@ -1,3 +1,4 @@
+import { describe, it, expect, afterEach, vi, type Mock } from "vitest";
 import {
   Connection,
   PartialPreference,
@@ -6,7 +7,7 @@ import {
 import { changePreference, deletePreference } from "./../src/adb/operations";
 import client from "../src/adb/client";
 
-jest.mock("../src/adb/client");
+vi.mock("../src/adb/client");
 
 const keyValuePrefs = `
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
@@ -20,9 +21,9 @@ const encodedProtobufPrefs =
   "Cg8KCWlzVmlzaXRlZBICCAAKEAoKc29tZS1jb3VudBICGA4KFQoJdGVtcC1uYW1lEggqBmNoYXJsbwoUCgdhdmVyYWdlEgk5mpmZmZmZFUA=";
 
 describe("Operations", () => {
-  const mock = client.shell as jest.Mock;
+  const mock = client.shell as Mock;
 
-  afterEach(() => jest.clearAllMocks);
+  afterEach(() => vi.clearAllMocks());
 
   it("should fail a change due to missing preference key", async () => {
     const pref: PartialPreference = {
