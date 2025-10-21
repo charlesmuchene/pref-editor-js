@@ -33,20 +33,19 @@
     "@eslint/js": "^9.34.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "@types/node": "^24.3.0",
+    "@types/node": "^24.9.1",
     "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9.34.0",
+    "eslint": "^9.38.0",
     "protobufjs-cli": "^1.2.0",
     "rimraf": "^6.0.1",
-    "semantic-release": "^25.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.41.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2",
     "vitest": "^3.2.4"
   },
   "dependencies": {
     "@devicefarmer/adbkit": "^3.3.8",
-    "fast-xml-parser": "^5.2.5",
+    "fast-xml-parser": "^5.3.0",
     "protobufjs": "^7.5.4"
   },
   "bugs": {
