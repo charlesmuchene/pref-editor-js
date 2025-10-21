@@ -28,14 +28,15 @@ jobs:
           PR_TITLE="${{ github.event.pull_request.title }}"
           echo "Validating PR title: $PR_TITLE"
 
-          if [[ "$PR_TITLE" =~ ^(BREAKING|breaking|feat|FEAT|fix|FIX): ]]; then
+          if [[ "$PR_TITLE" =~ ^((BREAKING|breaking|feat|FEAT|fix|FIX):|(bump|BUMP|Bump)(:|[[:space:]]|$)) ]]; then
             echo "✅ PR title format is valid"
           else
-            echo "❌ PR title must start with 'BREAKING:', 'feat:', or 'fix:' (case-insensitive)"
+            echo "❌ PR title must start with one of: 'BREAKING:', 'feat:', 'fix:' (case-insensitive) or 'Bump' (colon optional)"
             echo "Examples:"
             echo "  - BREAKING: Remove deprecated functionality"
             echo "  - feat: Add new preference validation feature"
             echo "  - fix: Fix typo in documentation"
+            echo "  - Bump Update dependency versions"
             exit 1
           fi
 
